@@ -11,4 +11,5 @@ export default function PatientsPage() {
       <AppointmentForm />
     </main>
   );
+  
 }
