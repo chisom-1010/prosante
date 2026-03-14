@@ -1,10 +1,8 @@
-"use client"
+"use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,26 +11,69 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { MoreVerticalCircle01Icon, UserCircle02Icon, CreditCardIcon, Notification03Icon, Logout01Icon } from "@hugeicons/core-free-icons"
+} from "@/components/ui/sidebar";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MoreVerticalCircle01Icon,
+  UserCircle02Icon,
+  CreditCardIcon,
+  Notification03Icon,
+  Logout01Icon,
+} from "@hugeicons/core-free-icons";
+import { useRouter } from "next/navigation";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
-  const { isMobile } = useSidebar()
+export function NavUser() {
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  // useState(( =>){
+  //
+
+  //   //
+  // })
+
+  const logout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
+
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    avatar: "/globe.svg",
+  });
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!authData.user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nom, prenom, email")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profile) {
+        setUser({
+          name: `${profile.prenom ?? ""} ${profile.nom ?? ""}`,
+          email: profile.email ?? authData.user.email ?? "",
+          avatar: "/globe.svg",
+        });
+      }
+    }
+
+    loadUser();
+  }, [supabase]);
 
   return (
     <SidebarMenu>
@@ -53,7 +94,11 @@ export function NavUser({
                   {user.email}
                 </span>
               </div>
-              <HugeiconsIcon icon={MoreVerticalCircle01Icon} strokeWidth={2} className="ml-auto size-4" />
+              <HugeiconsIcon
+                icon={MoreVerticalCircle01Icon}
+                strokeWidth={2}
+                className="ml-auto size-4"
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -92,7 +137,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
               Log out
             </DropdownMenuItem>
@@ -100,5 +145,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

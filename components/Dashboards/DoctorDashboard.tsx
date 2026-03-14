@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 const APPOINTMENT_STATS = [
   {
@@ -37,24 +38,6 @@ const APPOINTMENTS = [
 export default function DoctorDashboard() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border py-6 px-6 md:px-12">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold tracking-widest">TABLEAU MÉDECIN</h1>
-          <nav className="hidden md:flex gap-8">
-            <Button variant="ghost" size="sm" className="text-xs font-semibold tracking-widest">
-              RENDEZ-VOUS
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs font-semibold tracking-widest text-muted-foreground">
-              PATIENTS
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs font-semibold tracking-widest text-muted-foreground">
-              PARAMÈTRES
-            </Button>
-          </nav>
-        </div>
-        <Separator className="bg-border" />
-      </header>
 
       {/* Main Content */}
       <main className="p-6 md:p-12">
@@ -76,8 +59,10 @@ export default function DoctorDashboard() {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold tracking-widest">RENDEZ-VOUS DISPONIBLES</h2>
-            <p className="text-xs font-semibold tracking-widest text-muted-foreground">
-              TOUT VOIR
+            <p className="text-xs font-semibold tracking-widest text-muted-foreground hover:text-primary hover:underline cursor-pointer">
+                <Link href="/doctors/appointments">
+                    TOUT VOIR
+                </Link>
             </p>
           </div>
           <Separator className="mb-8 bg-border" />
