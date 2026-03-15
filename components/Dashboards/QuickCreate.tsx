@@ -13,19 +13,19 @@ const QUICK_CREATE_OPTIONS = [
     title: "SERVICE MEDICAL",
     description: "Ajouter un nouveau service médical",
     icon: FirstAidKitIcon,
-    url: "/quick_create/service_medical",
+    url: "/admin/quick_create/service_medical",
   },
   {
     title: "RECEPTIONISTE",
     description: "Ajouter un nouveau réceptioniste",
     icon: PlusSignIcon,
-    url: "/quick_create/receptionist",
+    url: "/admin/quick_create/receptionist",
   },
   {
     title: "MEDECIN",
     description: "Ajouter un nouveau docteur",
     icon: Doctor01Icon,
-    url: "/quick_create/doctors",
+    url: "/admin/quick_create/doctors",
   },
 ];
 

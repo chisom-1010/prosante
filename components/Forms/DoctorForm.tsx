@@ -45,28 +45,30 @@ export function DoctorForm({
     fetchServices();
   }, []);
   const handleAddDoctor = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.from("doctors").insert({
+    e.preventDefault()
+  
+    setIsLoading(true)
+  
+    const res = await fetch("/api/create_doctor", {
+      method: "POST",
+      body: JSON.stringify({
         email,
         nom: name,
         prenom: firstName,
-        role: "medécin",
         service_id: selectedService,
-      });
-      if (error) throw error;
-      router.push("/admin/Manangement/doctors");
-      console.log(selectedService);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+      })
+    })
+  
+    const data = await res.json()
+  
+    if (data.error) {
+      setError(data.error)
+    } else {
+      router.push("/admin/Manangement/doctors")
     }
-  };
+  
+    setIsLoading(false)
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
