@@ -172,35 +172,35 @@ export default function ReceptionistsList() {
                 .getColumn("receptionist_name")
                 ?.setFilterValue(event.target.value)
             }
-            className="h-8 w-[220px]"
+            className="h-14 w-[270px]"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="lg" className="text-sm">
                 <HugeiconsIcon
                   icon={LeftToRightListBulletIcon}
-                  strokeWidth={2}
+                  strokeWidth={3}
                   data-icon="inline-start"
                 />
                 Colonnes
                 <HugeiconsIcon
                   icon={ArrowDown01Icon}
-                  strokeWidth={2}
+                  strokeWidth={3}
                   data-icon="inline-end"
                 />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-50">
               {table
                 .getAllColumns()
                 .filter((column) => column.getCanHide())
                 .map((column) => (
                   <DropdownMenuCheckboxItem
                     key={column.id}
-                    className="capitalize"
+                    className="capitalize text-sm"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
@@ -217,7 +217,7 @@ export default function ReceptionistsList() {
       <div className="relative flex flex-col gap-4 overflow-auto px-4 pt-6 lg:px-6">
         <div className="overflow-hidden rounded-lg border">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableHeader className="sticky top-0 z-10 bg-muted text-sm/snug">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -251,7 +251,7 @@ export default function ReceptionistsList() {
                     data-state={row.getIsSelected() && "selected"}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id}  className="text-sm">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
