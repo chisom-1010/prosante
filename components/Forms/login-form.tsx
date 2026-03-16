@@ -59,12 +59,8 @@ export function LoginForm({
       // redirect based on role
       if (role === "admin") {
         router.push("/admin");
-      } else if (role === "medécin") {
-        router.push("/doctors");
       } else if (role === "patient") {
         router.push("/patients");
-      } else if (role === "receptioniste") {
-        router.push("/reception");
       } else {
         router.push("/");
       }

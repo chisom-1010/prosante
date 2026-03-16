@@ -1,108 +1,131 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import Link from 'next/link';
+"use client";
 
-const APPOINTMENT_STATS = [
-  {
-    label: 'RENDEZ-VOUS ACCEPTÉS',
-    value: '24',
-  },
-  {
-    label: 'RENDEZ-VOUS EN ATTENTE',
-    value: '12',
-  },
-];
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
-const APPOINTMENTS = [
-  {
-    id: 'A1',
-    patient: 'Jean Dupont',
-    time: '12 Mar 2026, 09:00',
-    status: 'pending',
-  },
-  {
-    id: 'A2',
-    patient: 'Marie Curie',
-    time: '12 Mar 2026, 10:30',
-    status: 'pending',
-  },
-  {
-    id: 'A3',
-    patient: 'Louis Pasteur',
-    time: '12 Mar 2026, 11:00',
-    status: 'accepted',
-  },
-];
+type Appointment = {
+  id: string | number;
+  status: string;
+  patient_name: string;
+  appointment_date: string;
+  tranche_horaires: string;
+};
+
+type DoctorStats = {
+  accepted: number;
+};
 
 export default function DoctorDashboard() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [stats, setStats] = useState<DoctorStats>({
+    accepted: 0,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [{ data: appts }, { data: stat }] = await Promise.all([
+        supabase.rpc("get_doctor_dashboard"),
+        supabase.rpc("get_doctor_stats"),
+      ]);
+
+      if (appts) {
+        setAppointments(appts as Appointment[]);
+      }
+
+      if (stat && stat.length > 0) {
+        setStats({
+          accepted: (stat[0] as DoctorStats).accepted,
+        });
+      }
+    };
+
+    fetchData();
+  }, [supabase]);
+
+  const pendingAppointments = appointments.filter(
+    (appointment) => appointment.status === "en attente",
+  );
+
+  const acceptedAppointments = appointments.filter(
+    (appointment) => appointment.status === "accepté",
+  );
+
   return (
     <div className="min-h-screen bg-background">
-
-      {/* Main Content */}
       <main className="p-6 md:p-12">
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {APPOINTMENT_STATS.map((stat, index) => (
-            <div key={index} className="flex items-start gap-4 border-l border-border pl-6 py-2">
-              <div>
-                <p className="text-xs font-semibold tracking-widest text-muted-foreground mb-2">
-                  {stat.label}
-                </p>
-                <p className="text-6xl font-light">{stat.value}</p>
-              </div>
-            </div>
-          ))}
+        <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="border-l pl-6">
+            <p className="text-xs font-semibold tracking-widest text-muted-foreground">
+              RENDEZ-VOUS ACCEPTÉS
+            </p>
+            <p className="text-6xl font-light">{stats.accepted}</p>
+          </div>
         </div>
 
-        {/* Appointments Section */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold tracking-widest">RENDEZ-VOUS DISPONIBLES</h2>
-            <p className="text-xs font-semibold tracking-widest text-muted-foreground hover:text-primary hover:underline cursor-pointer">
-                <Link href="/doctors/appointments">
-                    TOUT VOIR
-                </Link>
-            </p>
+          <div className="mb-6 flex justify-between">
+            <h2 className="text-xl font-bold tracking-widest">
+              RENDEZ-VOUS DISPONIBLES
+            </h2>
+            <Link
+              href="/doctors/appointments"
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              TOUT VOIR
+            </Link>
           </div>
-          <Separator className="mb-8 bg-border" />
+
+          <Separator className="mb-8" />
 
           <div className="space-y-6">
-            {APPOINTMENTS.filter(a => a.status === 'pending').map((appt) => (
-              <Card key={appt.id} className="border-border">
-                <CardContent className="flex items-center justify-between py-6">
+            {pendingAppointments.map((appointment) => (
+              <Card key={appointment.id}>
+                <CardContent className="flex justify-between py-6">
                   <div>
-                    <p className="text-sm font-semibold">{appt.patient}</p>
-                    <p className="text-xs text-muted-foreground">{appt.time}</p>
+                    <p className="text-sm font-semibold">
+                      {appointment.patient_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {appointment.appointment_date} •{" "}
+                      {appointment.tranche_horaires}
+                    </p>
                   </div>
-                  <Button variant="default" size="sm" className="tracking-widest">
-                    ACCEPTER
-                  </Button>
+
+                  <Button size="sm">ACCEPTER</Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
 
-        {/* Accepted Appointments Section */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold tracking-widest">RENDEZ-VOUS ACCEPTÉS</h2>
-            <p className="text-xs font-semibold tracking-widest text-muted-foreground">
-              TOUT VOIR
-            </p>
-          </div>
-          <Separator className="mb-8 bg-border" />
+          <h2 className="mb-6 text-xl font-bold tracking-widest">
+            RENDEZ-VOUS ACCEPTÉS
+          </h2>
+
+          <Separator className="mb-8" />
 
           <div className="space-y-6">
-            {APPOINTMENTS.filter(a => a.status === 'accepted').map((appt) => (
-              <Card key={appt.id} className="border-border">
-                <CardContent className="flex items-center justify-between py-6">
+            {acceptedAppointments.map((appointment) => (
+              <Card key={appointment.id}>
+                <CardContent className="flex justify-between py-6">
                   <div>
-                    <p className="text-sm font-semibold">{appt.patient}</p>
-                    <p className="text-xs text-muted-foreground">{appt.time}</p>
+                    <p className="text-sm font-semibold">
+                      {appointment.patient_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {appointment.appointment_date} •{" "}
+                      {appointment.tranche_horaires}
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm" className="tracking-widest">
+
+                  <Button variant="outline" size="sm">
                     DÉTAILS
                   </Button>
                 </CardContent>
@@ -111,11 +134,6 @@ export default function DoctorDashboard() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-6 px-6 md:px-12 text-center text-xs text-muted-foreground tracking-wider">
-        © 2024 PROSANTÉ. TOUS DROITS RÉSERVÉS.
-      </footer>
     </div>
   );
 }
