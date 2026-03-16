@@ -18,14 +18,6 @@ import {
   Menu01Icon,
   ChartHistogramIcon,
   Folder01Icon,
-  UserGroupIcon,
-  Camera01Icon,
-  File01Icon,
-  Settings05Icon,
-  HelpCircleIcon,
-  SearchIcon,
-  Database01Icon,
-  Analytics01Icon,
   CommandIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -53,7 +45,7 @@ const data = {
     },
     {
       title: "Réceptioniste",
-      url: "/admin/Management/receptionist",
+      url: "/admin/Management/receptionists",
       icon: <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} />,
     },
   ],

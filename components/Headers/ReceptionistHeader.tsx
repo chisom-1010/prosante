@@ -16,7 +16,9 @@ type ReceptionistProfile = {
 export function ReceptionistHeader() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const [receptionist, setReceptionist] = useState<ReceptionistProfile | null>(null);
+  const [receptionist, setReceptionist] = useState<ReceptionistProfile | null>(
+    null,
+  );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -60,11 +62,13 @@ export function ReceptionistHeader() {
 
   return (
     <header className="border-b border-border px-6 py-6 md:px-12">
-      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
+      <div className="fixed top-0 mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className=" fixed top-0 space-y-2">
           <h1 className="text-4xl font-bold tracking-widest">
             <Link href="/doctors">
-              {receptionist?.name ? `Bienvenue, ${receptionist.name}` : "Bienvenue"}
+              {receptionist?.name
+                ? `Bienvenue, ${receptionist.name}`
+                : "Bienvenue"}
             </Link>
           </h1>
         </div>

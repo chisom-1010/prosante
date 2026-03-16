@@ -63,7 +63,7 @@ const appointmentSchema = z.object({
 });
 
 const statsSchema = z.object({
-  accepted: z.number(),
+  pending: z.number(),
 });
 
 type Appointment = z.infer<typeof appointmentSchema>;
@@ -130,7 +130,7 @@ export default function ReceptionistDashboard() {
   const [data, setData] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [stats, setStats] = React.useState<ReceptionistStats>({
-    accepted: 0,
+    pending: 0,
   });
 
   const [rowSelection, setRowSelection] = React.useState({});
@@ -225,7 +225,7 @@ export default function ReceptionistDashboard() {
                 <p className="text-xs font-semibold tracking-widest text-muted-foreground">
                   RENDEZ-VOUS ACCEPTÉS
                 </p>
-                <p className="text-6xl font-light">{stats.accepted}</p>
+                <p className="text-6xl font-light">{stats.pending}</p>
               </div>
             </CardContent>
           </Card>

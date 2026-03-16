@@ -157,7 +157,7 @@ export default function ReceptionistsList() {
       <div className="flex items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-2">
           <Label htmlFor="receptionist-filter" className="sr-only">
-            Rechercher un receptionist
+            Rechercher un receptioniste
           </Label>
           <Input
             id="receptionist-filter"
