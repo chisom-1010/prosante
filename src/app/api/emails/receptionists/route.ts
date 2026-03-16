@@ -1,4 +1,4 @@
-import DoctorAccountEmail from "@/emails/DoctorAccountEmail";
+import ReceptionistAccountEmail from "@/emails/ReceptionistAccountEmail";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,11 +10,11 @@ export async function POST(req: Request) {
     const { data, error } = await resend.emails.send({
       from: "ProSanté <contact@prosantes.site>",
       to: [body.email],
-      subject: "Votre compte médecin ProSanté",
-      react: DoctorAccountEmail({
-        doctorName: body.nom,
-        doctorEmail: body.email,
-        password: "MED-3014",
+      subject: "Votre compte réceptionniste ProSanté",
+      react: ReceptionistAccountEmail({
+        ReceptionistName: body.nom,
+        ReceptionistEmail: body.email,
+        password: "RECEP-1014",
         loginLink: "https://prosantes.site/auth/login",
       }),
     });

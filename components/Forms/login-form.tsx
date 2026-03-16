@@ -45,48 +45,48 @@ export function LoginForm({
 
       // get user id
       const userId = data.user.id;
-      
+
       // 1️⃣ check profiles (admin / patient)
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", userId)
         .single();
-      
+
       if (profile?.role === "admin") {
         router.push("/admin");
         return;
       }
-      
+
       if (profile?.role === "patient") {
         router.push("/patients");
         return;
       }
-      
+
       // 2️⃣ check doctors table
       const { data: doctor } = await supabase
         .from("doctors")
         .select("id")
         .eq("auth_user_id", userId)
         .single();
-      
+
       if (doctor) {
         router.push("/doctors");
         return;
       }
-      
+
       // 3️⃣ check receptionists table
       const { data: receptionist } = await supabase
         .from("receptionists")
         .select("id")
         .eq("auth_user_id", userId)
         .single();
-      
+
       if (receptionist) {
-        router.push("/receptionist");
+        router.push("/receptionists");
         return;
       }
-      
+
       // fallback
       router.push("/");
     } catch (error: unknown) {

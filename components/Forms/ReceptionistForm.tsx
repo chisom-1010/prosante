@@ -23,52 +23,47 @@ export function ReceptionistForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [firstName, setFirstName] = useState("");
-  const [services, setServices] = useState<
-    { id: string; type_de_service: string }[]
-  >([]);
-  const [selectedService, setSelectedService] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const getCurrentUser = async () => {
       const supabase = createClient();
-      const { data, error } = await supabase.rpc("get_services");
-      if (!error && data) {
-        setServices(data);
-      }
+      const { data, error } = await supabase.auth.getUser();
+      console.log(data.user);
     };
-    fetchServices();
+    getCurrentUser();
   }, []);
+
   const handleAddReceptionist = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
 
-    try {
-      const { error } = await supabase.auth.signUp({
+    setIsLoading(true);
+
+    const res = await fetch("/api/create_receptionist", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         email,
-        password,
-        options: {
-          data: {
-            nom: name,
-            prenom: firstName,
-            role: "receptioniste",
-          },
-        },
-      });
-      if (error) throw error;
-      router.push("/quick_create");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+        nom: name,
+        prenom: firstName,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      setError(data.error);
+    } else {
+      router.push("/admin/Management/receptionists");
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -89,10 +84,10 @@ export function ReceptionistForm({
               </div>
               <span className="sr-only">ProSanté</span>
             </Link>
-            <h1 className="text-xl font-bold">Ajouter Une Réceptioniste</h1>
+            <h1 className="text-xl font-bold">Ajouter Un Réceptioniste</h1>
             <FieldDescription>
               <span className="text-sm text-muted-foreground">
-                Veiullez remplir les champs pour ajouter une réceptioniste
+                Veiullez remplir les champs pour ajouter un réceptioniste
               </span>
             </FieldDescription>
           </div>
@@ -102,7 +97,7 @@ export function ReceptionistForm({
               id="name"
               type="text"
               onChange={(e) => setName(e.target.value)}
-              placeholder="le nom du réceptioniste"
+              placeholder="veuillez entrer votre nom"
               required
             />
           </Field>
@@ -111,7 +106,7 @@ export function ReceptionistForm({
             <Input
               id="firstName"
               type="text"
-              placeholder="le prenom du réceptioniste"
+              placeholder="veuillez entrer votre prénom"
               onChange={(e) => setFirstName(e.target.value)}
               required
             />
@@ -127,21 +122,23 @@ export function ReceptionistForm({
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="password">Mot de Passe</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="mot de passe"
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </Field>
-          <Field>
             <Button
               className="cursor-pointer hover:bg-emerald-800"
               type="submit"
+              onClick={async () => {
+                await fetch(`/api/emails/receptionists`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    email: email,
+                    nom: name,
+                  }),
+                });
+              }}
             >
-              Ajouter la réceptioniste
+              Ajouter l&apos;agent de reception
             </Button>
           </Field>
           <FieldSeparator></FieldSeparator>

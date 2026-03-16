@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const { data: authUser, error: authError } =
     await supabase.auth.admin.createUser({
       email: body.email,
-      password: "MED-3014",
+      password: "RECEP-1014",
       email_confirm: true,
       user_metadata: {
         must_change_password: true,
@@ -23,17 +23,16 @@ export async function POST(req: Request) {
     return Response.json({ error: authError.message }, { status: 400 });
   }
 
-  // Insert doctor
-  const { error: doctorError } = await supabase.from("doctors").insert({
+  // Insert receptionist
+  const { error: receptionistError } = await supabase.from("receptionists").insert({
     email: body.email,
     nom: body.nom,
     prenom: body.prenom,
-    service_id: body.service_id,
     auth_user_id: authUser.user.id,
   });
 
-  if (doctorError) {
-    return Response.json({ error: doctorError.message }, { status: 400 });
+  if (receptionistError) {
+    return Response.json({ error: receptionistError.message }, { status: 400 });
   }
 
   return Response.json({ success: true });
