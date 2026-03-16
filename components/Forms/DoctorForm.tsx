@@ -44,31 +44,44 @@ export function DoctorForm({
     };
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
+      console.log(data.user);
+    };
+    getCurrentUser();
+  }, []);
+
   const handleAddDoctor = async (e: React.SubmitEvent) => {
-    e.preventDefault()
-  
-    setIsLoading(true)
-  
+    e.preventDefault();
+
+    setIsLoading(true);
+
     const res = await fetch("/api/create_doctor", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         email,
         nom: name,
         prenom: firstName,
         service_id: selectedService,
-      })
-    })
-  
-    const data = await res.json()
-  
+      }),
+    });
+
+    const data = await res.json();
+
     if (data.error) {
-      setError(data.error)
+      setError(data.error);
     } else {
-      router.push("/admin/Manangement/doctors")
+      router.push("/admin/Management/doctors");
     }
-  
-    setIsLoading(false)
-  }
+
+    setIsLoading(false);
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -147,6 +160,18 @@ export function DoctorForm({
             <Button
               className="cursor-pointer hover:bg-emerald-800"
               type="submit"
+              onClick={async () => {
+                await fetch(`/api/emails/doctors`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    email: email,
+                    nom: name,
+                  }),
+                });
+              }}
             >
               Ajouter le médecin
             </Button>
