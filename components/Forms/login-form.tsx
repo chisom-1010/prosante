@@ -16,19 +16,43 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+const defaultFields = {
+  email: "",
+  password: "",
+};
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [fields, setFields] = useState(defaultFields);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault();
+
+    if (!fields.email || !fields.password) {
+      toast.error("Veuillez remplir tous les champs.", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    if (
+      !(
+        fields.email.includes("@gmail.com") ||
+        fields.email.includes("@yahoo.com")
+      )
+    ) {
+      toast.error("Veuillez entrer une adresse email valide.", {
+        position: "top-center",
+      });
+      return;
+    }
 
     const supabase = createClient();
     setIsLoading(true);
@@ -37,8 +61,8 @@ export function LoginForm({
     try {
       // login
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: fields.email,
+        password: fields.password,
       });
 
       if (error) throw error;
@@ -111,7 +135,6 @@ export function LoginForm({
                   className="size-6"
                 />
               </div>
-              <span className="sr-only">Acme Inc.</span>
             </Link>
             <h1 className="text-xl font-bold">Bienvenue à ProSanté</h1>
             <FieldDescription>
@@ -124,8 +147,10 @@ export function LoginForm({
               id="email"
               type="email"
               placeholder="m@example.com"
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              onChange={(e) => {
+                setFields({ ...fields, email: e.target.value });
+              }}
+              // required
             />
           </Field>
           <Field>
@@ -134,8 +159,10 @@ export function LoginForm({
               id="password"
               type="password"
               placeholder="mot de passe"
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={(e) => {
+                setFields({ ...fields, password: e.target.value });
+              }}
+              // required
             />
           </Field>
           <Field>

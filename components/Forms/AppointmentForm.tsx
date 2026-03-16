@@ -27,13 +27,6 @@ interface FormData {
   patientId: string;
 }
 
-const DEPARTMENTS = [
-  "Cardiologie",
-  "Dermatologie",
-  "Gastroentérologie",
-  "Neurologie",
-];
-
 const PRACTITIONERS = [
   "Pas de Préference",
   "Dr. Martin",
@@ -141,22 +134,30 @@ export default function AppointmentForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNewAppointment = async (e: React.SubmitEvent) => {
+  const handleNewAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
+  
+    if (!validateForm()) return;
+  
     const supabase = createClient();
-
-    const { error: insertError } = await supabase
+  
+    const { data: userData } = await supabase.auth.getUser();
+  
+    const { error } = await supabase
       .from("demande_de_consultation")
       .insert({
-        id_patient: formData.patientId,
-        nom_patient: formData.patientName,
-        prenom_patient: formData.patientLastName,
-        id_praticien: formData.practitioner,
-        id_service: formData.department,
+        id_patient: userData.user?.id,
+        tranche_horaires: formData.selectedSlot,
+        date_de_rendezvous: formData.selectedDate,
+        id_service_medical: formData.department,
+        sexe: "unknown",
+        status: "en attente"
       });
-    if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Handle form submission
+  
+    if (error) {
+      console.error(error);
+    } else {
+      console.log("Appointment created");
     }
   };
 
@@ -201,9 +202,9 @@ export default function AppointmentForm() {
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
+                    {services.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.type_de_service}
                       </SelectItem>
                     ))}
                   </SelectContent>
