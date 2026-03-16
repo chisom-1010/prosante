@@ -27,7 +27,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const supabase = createClient();
@@ -43,27 +43,52 @@ export function LoginForm({
 
       if (error) throw error;
 
+      // get user id
       const userId = data.user.id;
-
-      // get user role
-      const { data: profile, error: profileError } = await supabase
+      
+      // 1️⃣ check profiles (admin / patient)
+      const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", userId)
         .single();
-
-      if (profileError) throw profileError;
-
-      const role = profile.role;
-
-      // redirect based on role
-      if (role === "admin") {
+      
+      if (profile?.role === "admin") {
         router.push("/admin");
-      } else if (role === "patient") {
-        router.push("/patients");
-      } else {
-        router.push("/");
+        return;
       }
+      
+      if (profile?.role === "patient") {
+        router.push("/patients");
+        return;
+      }
+      
+      // 2️⃣ check doctors table
+      const { data: doctor } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("auth_user_id", userId)
+        .single();
+      
+      if (doctor) {
+        router.push("/doctors");
+        return;
+      }
+      
+      // 3️⃣ check receptionists table
+      const { data: receptionist } = await supabase
+        .from("receptionists")
+        .select("id")
+        .eq("auth_user_id", userId)
+        .single();
+      
+      if (receptionist) {
+        router.push("/receptionist");
+        return;
+      }
+      
+      // fallback
+      router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

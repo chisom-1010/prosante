@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Appointment = {
   id: string | number;
@@ -21,11 +22,13 @@ type DoctorStats = {
 
 export default function DoctorDashboard() {
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<DoctorStats>({
     accepted: 0,
   });
+
 
   useEffect(() => {
     const fetchData = async () => {

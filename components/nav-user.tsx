@@ -65,7 +65,7 @@ export function NavUser() {
 
       if (profile) {
         setUser({
-          name: `${profile.prenom ?? ""} ${profile.nom ?? ""}`,
+          name: `${profile.nom ?? ""} ${profile.prenom ?? ""}`,
           email: profile.email ?? authData.user.email ?? "",
           avatar: "/globe.svg",
         });
