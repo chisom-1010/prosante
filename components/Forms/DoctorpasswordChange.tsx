@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { toast } from "sonner"
 import { ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -37,6 +37,13 @@ export default function UpdatePasswordForm({
 
     setIsLoading(true);
     setError(null);
+
+    if (password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères.", {
+        position: "top-center",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.updateUser({

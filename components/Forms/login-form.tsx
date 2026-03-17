@@ -120,32 +120,37 @@ export function LoginForm({
     }
   };
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-8 text-base", className)} {...props}>
       <form onSubmit={handleLogin}>
         <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <Link
               href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
+              <div className="flex size-10 items-center justify-center rounded-md">
                 <HugeiconsIcon
                   icon={CommandIcon}
                   strokeWidth={2}
-                  className="size-6"
+                  className="size-7"
                 />
               </div>
             </Link>
-            <h1 className="text-xl font-bold">Bienvenue à ProSanté</h1>
-            <FieldDescription>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Bienvenue à ProSanté
+            </h1>
+            <FieldDescription className="text-sm md:text-base">
               <a href="#">Mot de Passe Oublié?</a>
             </FieldDescription>
           </div>
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email" className="text-base md:text-lg">
+              Email
+            </FieldLabel>
             <Input
               id="email"
               type="email"
+              className="h-12 text-base md:h-14 md:text-lg"
               placeholder="m@example.com"
               onChange={(e) => {
                 setFields({ ...fields, email: e.target.value });
@@ -154,10 +159,13 @@ export function LoginForm({
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="password">Mot de Passe</FieldLabel>
+            <FieldLabel htmlFor="password" className="text-base md:text-lg">
+              Mot de Passe
+            </FieldLabel>
             <Input
               id="password"
               type="password"
+              className="h-12 text-base md:h-14 md:text-lg"
               placeholder="mot de passe"
               onChange={(e) => {
                 setFields({ ...fields, password: e.target.value });
@@ -167,7 +175,7 @@ export function LoginForm({
           </Field>
           <Field>
             <Button
-              className="cursor-pointer hover:bg-emerald-800"
+              className="h-12 w-full cursor-pointer text-base font-semibold hover:bg-emerald-800 md:h-14 md:text-lg"
               type="submit"
             >
               Se Connecter
@@ -176,7 +184,7 @@ export function LoginForm({
           <FieldSeparator></FieldSeparator>
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center">
+      <FieldDescription className="px-6 text-center text-sm md:text-base">
         <a href="#">Terme de Service</a> et <a href="#">Politique Privé</a>.
       </FieldDescription>
     </div>
