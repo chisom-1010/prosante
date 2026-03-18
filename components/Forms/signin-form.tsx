@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 const defaultFields = {
   name: "",
@@ -36,64 +36,100 @@ export function SigninForm({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSignUp = async (e: React.SubmitEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
-
-    if (
-      !fields.email ||
-      !fields.password ||
-      !fields.name ||
-      !fields.firstName
-    ) {
-      toast.error("Veuillez remplir tous les champs.", {
-        position: "top-center",
-        className: "bg-destructive text-destructive-foreground",
-      });
+  
+    if (!fields.email || !fields.password || !fields.name || !fields.firstName) {
+      toast.error("Veuillez remplir tous les champs.");
+      setIsLoading(false);
       return;
     }
-
-    if (
-      !(
-        fields.email.includes("@gmail.com") ||
-        fields.email.includes("@yahoo.com")
-      )
-    ) {
-      toast.error("Veuillez entrer une adresse email valide.", {
-        position: "top-center",
-      });
+  
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(fields.email)) {
+      toast.error("Veuillez entrer une adresse email valide.");
+      setIsLoading(false);
       return;
     }
-
+  
     if (fields.password.length < 8) {
-      toast.error("Le mot de passe doit contenir au moins 8 caractères.", {
-        position: "top-center",
-      });
+      toast.error("Le mot de passe doit contenir au moins 8 caractères.");
+      setIsLoading(false);
       return;
     }
-
+  
     try {
-      const { error } = await supabase.auth.signUp({
+      // ✅ SIGNUP
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: fields.email,
+          password: fields.password,
+          nom: fields.name,
+          prenom: fields.firstName,
+        }),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+  
+      // ✅ LOGIN
+      const supabase = createClient();
+  
+      const { error: loginError } = await supabase.auth.signInWithPassword({
         email: fields.email,
         password: fields.password,
-        options: {
-          data: {
-            nom: fields.name,
-            prenom: fields.firstName,
-          },
-        },
       });
-      if (error) throw error;
-      router.push("/patients");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+  
+      if (loginError) {
+        setError(loginError.message);
+        return;
+      }
+  
+      // ✅ GET USER
+      const { data: userData } = await supabase.auth.getUser();
+  
+      if (!userData.user) {
+        setError("Utilisateur introuvable");
+        return;
+      }
+  
+      // ✅ GET ROLE
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("auth_user_id", userData.user.id)
+        .single();
+  
+      if (profileError || !profile) {
+        setError("Profil introuvable");
+        return;
+      }
+  
+      // ✅ ROLE-BASED REDIRECT
+      if (profile.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/patients");
+      }
+  
+    } catch (err) {
+      setError("Erreur serveur");
     } finally {
       setIsLoading(false);
     }
   };
-
+  
+  
   return (
     <div
       className={cn("flex max-w-7xl flex-col gap-10 text-base", className)}

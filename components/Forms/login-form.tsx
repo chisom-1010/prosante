@@ -74,7 +74,7 @@ export function LoginForm({
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", userId)
+        .eq("auth_user_id", userId)
         .single();
 
       if (profile?.role === "admin") {
