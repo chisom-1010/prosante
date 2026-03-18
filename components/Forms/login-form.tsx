@@ -32,86 +32,88 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.SubmitEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!fields.email || !fields.password) {
-      toast.error("Veuillez remplir tous les champs.", {
-        position: "top-center",
-      });
+      toast.error("Veuillez remplir tous les champs.");
       return;
     }
-
-    if (
-      !(
-        fields.email.includes("@gmail.com") ||
-        fields.email.includes("@yahoo.com")
-      )
-    ) {
-      toast.error("Veuillez entrer une adresse email valide.", {
-        position: "top-center",
-      });
+  
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(fields.email)) {
+      toast.error("Veuillez entrer une adresse email valide.");
       return;
     }
-
+  
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
-
+  
     try {
-      // login
+      // ✅ LOGIN
       const { data, error } = await supabase.auth.signInWithPassword({
         email: fields.email,
         password: fields.password,
       });
-
+  
       if (error) throw error;
-
-      // get user id
+  
       const userId = data.user.id;
-
-      // 1️⃣ check profiles (admin / patient)
+      console.log("USER ID:", userId);
+      
+      // PROFILE
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("auth_user_id", userId)
-        .single();
-
-      if (profile?.role === "admin") {
-        router.push("/admin");
-        return;
+        .maybeSingle();
+      
+      console.log("PROFILE:", profile);
+      
+      if (profile) {
+        const role = profile.role?.toLowerCase();
+      
+        if (role === "admin") {
+          router.push("/admin");
+          return;
+        }
+      
+        if (role === "patient") {
+          router.push("/patients");
+          return;
+        }
       }
-
-      if (profile?.role === "patient") {
-        router.push("/patients");
-        return;
-      }
-
-      // 2️⃣ check doctors table
+      
+      // DOCTOR
       const { data: doctor } = await supabase
         .from("doctors")
         .select("id")
         .eq("auth_user_id", userId)
-        .single();
-
+        .maybeSingle();
+      
+      console.log("DOCTOR:", doctor);
+      
       if (doctor) {
         router.push("/doctors");
         return;
       }
-
-      // 3️⃣ check receptionists table
+      
+      // RECEPTIONIST
       const { data: receptionist } = await supabase
         .from("receptionists")
         .select("id")
         .eq("auth_user_id", userId)
-        .single();
-
+        .maybeSingle();
+      
+      console.log("RECEPTIONIST:", receptionist);
+      
       if (receptionist) {
         router.push("/receptionists");
         return;
       }
-
-      // fallback
+      
+      console.log("FALLBACK TRIGGERED");
       router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
