@@ -14,9 +14,8 @@ import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CommandIcon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export function ReceptionistForm({
   className,
@@ -26,13 +25,13 @@ export function ReceptionistForm({
   const [name, setName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const getCurrentUser = async () => {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       console.log(data.user);
     };
     getCurrentUser();
@@ -67,7 +66,13 @@ export function ReceptionistForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div
+      className={cn(
+        "flex w-full max-w-4xl flex-col gap-6 px-4 sm:px-0",
+        className,
+      )}
+      {...props}
+    >
       <form onSubmit={handleAddReceptionist}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
@@ -75,56 +80,81 @@ export function ReceptionistForm({
               href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
+              <div className="flex size-16 items-center justify-center rounded-md sm:size-20 lg:size-24">
                 <HugeiconsIcon
                   icon={CommandIcon}
                   strokeWidth={2}
-                  className="size-6"
+                  className="size-16 sm:size-20 lg:size-24"
                 />
               </div>
-              <span className="sr-only">ProSanté</span>
+              <span className="text-base sm:text-lg">ProSanté</span>
             </Link>
-            <h1 className="text-xl font-bold">Ajouter Un Réceptioniste</h1>
+            <h1 className="text-2xl font-medium sm:text-3xl lg:text-4xl">
+              Ajouter Un Réceptioniste
+            </h1>
             <FieldDescription>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-base text-muted-foreground sm:text-lg lg:text-xl">
                 Veiullez remplir les champs pour ajouter un réceptioniste
               </span>
             </FieldDescription>
           </div>
+
           <Field>
-            <FieldLabel htmlFor="name">Nom</FieldLabel>
+            <FieldLabel
+              htmlFor="name"
+              className="items-center justify-center pb-2 text-base font-medium sm:text-lg"
+            >
+              Nom
+            </FieldLabel>
             <Input
               id="name"
               type="text"
               onChange={(e) => setName(e.target.value)}
               placeholder="veuillez entrer votre nom"
+              className="h-12 text-base font-medium sm:h-14 sm:text-lg lg:text-xl"
               required
             />
           </Field>
+
           <Field>
-            <FieldLabel htmlFor="firstName">Prenom</FieldLabel>
+            <FieldLabel
+              htmlFor="firstName"
+              className="items-center justify-center pb-2 text-base font-medium sm:text-lg"
+            >
+              Prenom
+            </FieldLabel>
             <Input
               id="firstName"
               type="text"
               placeholder="veuillez entrer votre prénom"
               onChange={(e) => setFirstName(e.target.value)}
+              className="h-12 text-base font-medium sm:h-14 sm:text-lg lg:text-xl"
               required
             />
           </Field>
+
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel
+              htmlFor="email"
+              className="items-center justify-center pb-2 text-base font-medium sm:text-lg"
+            >
+              Email
+            </FieldLabel>
             <Input
               id="email"
               type="email"
               placeholder="m@example.com"
               onChange={(e) => setEmail(e.target.value)}
+              className="h-12 text-base font-medium sm:h-14 sm:text-lg lg:text-xl"
               required
             />
           </Field>
+
           <Field>
             <Button
-              className="cursor-pointer hover:bg-emerald-800"
+              className="h-12 cursor-pointer text-base hover:bg-emerald-800 sm:h-14 sm:text-lg lg:text-lg"
               type="submit"
+              disabled={isLoading}
               onClick={async () => {
                 await fetch(`/api/emails/receptionists`, {
                   method: "POST",
@@ -138,13 +168,15 @@ export function ReceptionistForm({
                 });
               }}
             >
-              Ajouter l&apos;agent de reception
+              {isLoading ? "Ajout en cours..." : "Ajouter l'agent de reception"}
             </Button>
           </Field>
+
           <FieldSeparator></FieldSeparator>
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center">
+
+      <FieldDescription className="px-6 text-center text-sm sm:text-base">
         <a href="#">Terme de Service</a> et <a href="#">Politique Privé</a>.
       </FieldDescription>
     </div>
