@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@/emails/*": ["./src/emails/*"],
+      "@/config/*": ["./src/app/config/*"],
     },
   },
   "include": [
