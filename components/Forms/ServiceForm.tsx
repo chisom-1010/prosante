@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export function ServiceForm({
   className,
@@ -26,27 +27,8 @@ export function ServiceForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const [userRole, setUserRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchRole() {
-      const supabase = createClient();
-      const { data, error } = await supabase.rpc("get_profile_role");
-      if (!error) setUserRole(data);
-    }
-    fetchRole();
-  }, []);
-
-  // Later, before rendering the form, check the role
-  // if (userRole === null) {
-  //   return <p>Chargement...</p>
-  // }
-
-  // if (userRole !== "admin") {
-  //   return <p>Accès non autorisé. Vous devez être administrateur.</p>
-  // }
-
-  const handleNewService = async (e: React.FormEvent) => {
+  const handleNewService = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const supabase = createClient();
@@ -64,13 +46,17 @@ export function ServiceForm({
       if (checkError) throw checkError;
 
       if (existing) {
-        // Service already exists – show a friendly error
-        setError("Ce service existe déjà.");
+        toast.error("Ce service existe déjà.", { position: "top-center" });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (!service.trim()) {
+        toast.error("Veuillez entrer un nom de service.", { position: "top-center" });
         setIsLoading(false);
         return;
       }
 
-      // 2. If not, insert the new service
       const { error: insertError } = await supabase
         .from("service_medical")
         .insert({ type_de_service: service });
@@ -81,8 +67,10 @@ export function ServiceForm({
       setService("");
       router.push("/quick_create");
     } catch (error: unknown) {
-      // Handle any other errors (network, permission, etc.)
-      setError(error instanceof Error ? error.message : "An error occurred");
+      toast.error(
+        error instanceof Error ? error.message : "An error occurred",
+        { position: "top-center" },
+      );
     } finally {
       setIsLoading(false);
     }
@@ -96,36 +84,41 @@ export function ServiceForm({
               href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
+              <div className="flex size-24 items-center justify-center rounded-md">
                 <HugeiconsIcon
                   icon={CommandIcon}
                   strokeWidth={2}
-                  className="size-6"
+                  className="size-24"
                 />
               </div>
-              <span className="sr-only">ProSanté</span>
+              <span className="lg">ProSanté</span>
             </Link>
-            <h1 className="text-xl font-bold">Créer un nouveau service</h1>
+            <h1 className="text-4xl font-medium">Créer un nouveau service</h1>
             <FieldDescription>
-              <span className="text-sm text-muted-foreground">
-                Veuillez enter le nom du service pour continuer
+              <span className="text-xl text-muted-foreground sm:text-center">
+                Entrez le nom du service pour continuer
               </span>
             </FieldDescription>
           </div>
           <Field>
-            <FieldLabel htmlFor="service">Type de service</FieldLabel>
+            <FieldLabel
+              htmlFor="service"
+              className="items-center justify-center text-lg font-medium pb-2"
+            >
+              Type de service
+            </FieldLabel>
             <Input
               id="service"
               type="text"
               onChange={(e) => setService(e.target.value)}
               placeholder="veuillez entrer le service"
-              required
+              className="items-center justify-center text-xl font-medium pb-2 h-14"
             />
           </Field>
           <Field>
             <Button
               disabled={isLoading}
-              className="cursor-pointer hover:bg-emerald-800"
+              className="cursor-pointer hover:bg-emerald-800 h-12 text-lg"  
               type="submit"
             >
               {isLoading ? "Ajout en cours..." : "Ajouter Le Service"}
