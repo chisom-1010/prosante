@@ -14,9 +14,8 @@ if (!serviceKey) throw new Error("❌ SUPABASE_SERVICE_ROLE_KEY is missing");
 
 const supabase = createClient(supabaseUrl, serviceKey);
 
-
 async function seedAdmin() {
-  const email = "admin@prosantes.site";
+  const email = process.env.ADMIN_EMAIL!;
   const password = process.env.ADMIN_PASSWORD!;
 
   // 🔒 0. Check if admin already exists
@@ -51,6 +50,8 @@ async function seedAdmin() {
     auth_user_id: user.id,
     email,
     role: "admin",
+    nom: "Super",
+    prenom: "admin",
   });
 
   if (profileError) {
