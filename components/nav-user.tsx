@@ -60,7 +60,7 @@ export function NavUser() {
       const { data: profile } = await supabase
         .from("profiles")
         .select("nom, prenom, email")
-        .eq("id", authData.user.id)
+        .eq("auth_user_id", authData.user.id)
         .single();
 
       if (profile) {
