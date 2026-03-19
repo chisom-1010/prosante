@@ -33,10 +33,10 @@ export default function QuickCreate() {
   return (
     <div className="min-h-screen bg-background">
       {/* Main Content */}
-      <main className="p-6 md:p-12">
+      <main className="p-6 md:p-6">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-2xl font-bold tracking-widest">
+          <h1 className="text-6xl font-medium tracking-widest bg-primary text-white py-6 text-center ">
             CRÉATION RAPIDE
           </h1>
           <Separator className="mt-4 bg-border" />
@@ -50,22 +50,22 @@ export default function QuickCreate() {
               className="border-border hover:border-primary/50 transition-colors cursor-pointer group"
             >
               <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="w-16 h-16 rounded-full border-2 border-border group-hover:border-primary transition-colors flex items-center justify-center mb-6">
+                <div className="w-24 h-24 rounded-full border-2 border-border group-hover:border-primary transition-colors flex items-center justify-center mb-6">
                   <HugeiconsIcon
                     icon={option.icon}
-                    className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors"
+                    className="w-18 h-18 text-muted-foreground group-hover:text-primary transition-colors"
                   />
                 </div>
-                <h3 className="text-lg font-bold tracking-wider mb-2">
+                <h3 className="text-3xl font-medium tracking-wider mb-2 relative after:absolute after:h-0.5 after:bg-primary after:w-0 after:bottom-0 after:left-0 hover:after:w-full after:transition-all after:duration-300 cursor-pointer">
                   {option.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-6">
+                <p className="text-lg text-muted-foreground font-medium mb-6">
                   {option.description}
                 </p>
                 <Button
                   variant="default"
                   size="sm"
-                  className="tracking-widest"
+                  className="tracking-widest w-1/2 text-2xl h-15"
                   asChild
                 >
                   <a href={option.url}>AJOUTER</a>
