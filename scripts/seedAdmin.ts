@@ -51,7 +51,7 @@ async function seedAdmin() {
     email,
     role: "admin",
     nom: "Super",
-    prenom: "admin",
+    prenom: "Admin",
   });
 
   if (profileError) {
