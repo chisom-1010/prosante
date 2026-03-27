@@ -101,23 +101,34 @@ export default function AppointmentForm() {
     fetchServices();
   }, []);
 
-  // ✅ Validation updated
+  // Form validation
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
 
-    if (!formData.department) toast.error("Veuillez sélectionner un département.", { position: "top-center" });
-    if (!formData.selectedSlot) toast.error("Choisir une tranche horaire", { position: "top-center" });
-    if (!formData.date) toast.error("Veuillez choisir une date", { position: "top-center" });
-    if (!formData.sexe) toast.error("Veuillez sélectionner votre sexe.", { position: "top-center" });
-    if (formData.age < 0) toast.error("Veuillez entrer un âge valide.", { position: "top-center" });
-    if (!formData) toast.error("Veuillez remplir tous les champs.", { position: "top-center" });
-    
+    if (!formData.department)
+      toast.error("Veuillez sélectionner un département.", {
+        position: "top-center",
+      });
+    if (!formData.selectedSlot)
+      toast.error("Choisir une tranche horaire", { position: "top-center" });
+    if (!formData.date)
+      toast.error("Veuillez choisir une date", { position: "top-center" });
+    if (!formData.sexe)
+      toast.error("Veuillez sélectionner votre sexe.", {
+        position: "top-center",
+      });
+    if (formData.age < 0)
+      toast.error("Veuillez entrer un âge valide.", { position: "top-center" });
+    if (!formData)
+      toast.error("Veuillez remplir tous les champs.", {
+        position: "top-center",
+      });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0 && date;
   };
 
-  // ✅ UPDATED SUBMIT
+  // ✅Submit
   const handleNewAppointment = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
@@ -156,7 +167,8 @@ export default function AppointmentForm() {
               <p className="text-xl font-medium text-foreground tracking-wide">
                 BIENVENUE, {formData.patientName} ! SERVICES AUX PATIENTS - 2024
                 <Button
-                  className="ml-75 cursor-pointer text-md p-5"
+                  variant="destructive"
+                  className="ml-75 cursor-pointer text-md p-5 text-primary"
                   onClick={logout}
                 >
                   Déconnecter-vous
@@ -205,7 +217,7 @@ export default function AppointmentForm() {
                   SEXE
                 </Label>
                 <Select
-                  value={formData.sexe}
+                  value={formData.sexe.toLowerCase().trim()}
                   onValueChange={(value) =>
                     setFormData({ ...formData, sexe: value })
                   }
@@ -231,8 +243,8 @@ export default function AppointmentForm() {
 
                 <Calendar
                   mode="single"
-                  selected={date}
-                  onSelect={setDate}
+                  selected={formData.date}
+                  onSelect={(selectedDate) => setFormData((prev) => ({ ...prev, date: selectedDate }))}
                   disabled={(d) =>
                     d < new Date(new Date().setHours(0, 0, 0, 0))
                   }

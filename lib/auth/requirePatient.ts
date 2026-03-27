@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { forbidden } from "next/navigation";
 import { unauthorized } from "next/navigation";
 
-export async function requireAdmin() {
+export async function requirePatient() {
   const supabase = await createClient();
 
   const {
@@ -19,7 +19,7 @@ export async function requireAdmin() {
     .eq("auth_user_id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
+  if (profile?.role !== "patient") {
     forbidden();
   }
 

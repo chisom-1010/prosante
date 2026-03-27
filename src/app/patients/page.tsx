@@ -1,15 +1,16 @@
-import AppointmentForm from '@/components/Forms/AppointmentForm';
+import AppointmentForm from "@/components/Forms/AppointmentForm";
+import { requirePatient } from "@/lib/auth/requirePatient";
 
 export const metadata = {
-  title: 'Appointment Request - ProSanté',
-  description: 'Request a consultation with our healthcare professionals',
+  title: "Demande de consultation - ProSanté",
+  description: "Demande une consultation avec nos professionnels de santé",
 };
 
-export default function PatientsPage() {
+export default async function PatientsPage() {
+  await requirePatient();
   return (
     <main className="min-h-screen bg-white">
       <AppointmentForm />
     </main>
   );
-  
 }

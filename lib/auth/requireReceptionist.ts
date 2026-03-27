@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { forbidden } from "next/navigation";
 import { unauthorized } from "next/navigation";
 
-export async function requireAdmin() {
+export async function requireReceptionist() {
   const supabase = await createClient();
 
   const {
@@ -13,13 +13,13 @@ export async function requireAdmin() {
     unauthorized();
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
+  const { data: receptionist } = await supabase
+    .from("receptionists")
+    .select("id")
     .eq("auth_user_id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
+  if (receptionist?.id == null) {
     forbidden();
   }
 

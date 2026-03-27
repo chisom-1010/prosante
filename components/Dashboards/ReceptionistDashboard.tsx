@@ -216,7 +216,7 @@ export default function ReceptionistDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background lg:px-6 ">
       <main className="p-6 md:p-12">
         <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2">
           <Card>
