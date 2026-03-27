@@ -62,7 +62,7 @@ export function ReceptionistHeader() {
 
   return (
     <header className="px-6 py-6 md:px-12 md:mt-6">
-      <div className="fixed top-0 flex flex-col gap-10 md:flex-col md:items-start md:justify-between">
+      <div className="fixed top-10 flex flex-col items-start md:flex-col md:items-start ">
         <div className="space-y-4">
           <h1 className="text-4xl font-bold tracking-widest">
             <Link href="/receptionists">
@@ -105,9 +105,8 @@ export function ReceptionistHeader() {
             </Button>
           </nav>
         </div>
+        <Separator className="bg-border" />
       </div>
-
-      <Separator className="bg-border" />
     </header>
   );
 }
