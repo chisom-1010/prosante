@@ -42,6 +42,7 @@ export default function RootLayout({
             {
               "--sidebar-width": "calc(var(--spacing) * 72)",
               "--header-height": "calc(var(--spacing) * 12)",
+              "--background-color": "var(--color-bg-primary)",
             } as React.CSSProperties
           }
         >

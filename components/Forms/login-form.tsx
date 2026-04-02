@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CommandIcon } from "@hugeicons/core-free-icons";
+import { CommandIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
@@ -30,89 +30,90 @@ export function LoginForm({
   const [fields, setFields] = useState(defaultFields);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (!fields.email || !fields.password) {
       toast.error("Veuillez remplir tous les champs.");
       return;
     }
-  
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(fields.email)) {
       toast.error("Veuillez entrer une adresse email valide.");
       return;
     }
-  
+
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
-  
+
     try {
       // ✅ LOGIN
       const { data, error } = await supabase.auth.signInWithPassword({
         email: fields.email,
         password: fields.password,
       });
-  
+
       if (error) throw error;
-  
+
       const userId = data.user.id;
       console.log("USER ID:", userId);
-      
+
       // PROFILE
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("auth_user_id", userId)
         .maybeSingle();
-      
+
       console.log("PROFILE:", profile);
-      
+
       if (profile) {
         const role = profile.role?.toLowerCase();
-      
+
         if (role === "admin") {
           router.push("/admin");
           return;
         }
-      
+
         if (role === "patient") {
           router.push("/patients");
           return;
         }
       }
-      
+
       // DOCTOR
       const { data: doctor } = await supabase
         .from("doctors")
         .select("id")
         .eq("auth_user_id", userId)
         .maybeSingle();
-      
+
       console.log("DOCTOR:", doctor);
-      
+
       if (doctor) {
         router.push("/doctors");
         return;
       }
-      
+
       // RECEPTIONIST
       const { data: receptionist } = await supabase
         .from("receptionists")
         .select("id")
         .eq("auth_user_id", userId)
         .maybeSingle();
-      
+
       console.log("RECEPTIONIST:", receptionist);
-      
+
       if (receptionist) {
         router.push("/receptionists");
         return;
       }
-      
+
       console.log("FALLBACK TRIGGERED");
       router.push("/");
     } catch (error: unknown) {
@@ -164,16 +165,30 @@ export function LoginForm({
             <FieldLabel htmlFor="password" className="text-base md:text-lg">
               Mot de Passe
             </FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              className="h-12 text-base md:h-14 md:text-lg"
-              placeholder="mot de passe"
-              onChange={(e) => {
-                setFields({ ...fields, password: e.target.value });
-              }}
-              // required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className="h-12 text-base md:h-14 md:text-lg"
+                placeholder="mot de passe"
+                onChange={(e) => {
+                  setFields({ ...fields, password: e.target.value });
+                }}
+                // required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground md:right-4"
+              >
+                {showPassword ? (
+                  <HugeiconsIcon icon={ViewIcon} />
+                ) : (
+                  <HugeiconsIcon icon={ViewOffIcon} />
+                )}
+              </button>
+            </div>
           </Field>
           <Field>
             <Button

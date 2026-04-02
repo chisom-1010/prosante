@@ -49,6 +49,7 @@ import {
   ArrowRight01Icon,
   ArrowRightDoubleIcon,
   LeftToRightListBulletIcon,
+  Delete02Icon,
 } from "@hugeicons/core-free-icons";
 
 export const schema = z.object({
@@ -87,6 +88,16 @@ const columns: ColumnDef<DoctorRow>[] = [
     cell: ({ row }) => (
       <div className="text-right font-medium tabular-nums">
         {row.original.appointments_count}
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "Action",
+    header: () => <div className="w-full text-right">Action</div>,
+    cell: ({ row }) => (
+      <div className="text-right font-medium tabular-nums color-red-500">
+        <HugeiconsIcon icon={Delete02Icon} className="inline " />
       </div>
     ),
   },
