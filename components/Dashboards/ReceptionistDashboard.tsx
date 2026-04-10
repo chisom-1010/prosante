@@ -58,8 +58,9 @@ const appointmentSchema = z.object({
   id: z.union([z.string(), z.number()]),
   status: z.string(),
   patient_name: z.string(),
-  appointment_date: z.string(),
+  date_de_rendezvous: z.string(),
   tranche_horaires: z.string(),
+  id_service_medical: z.string(), // ✅ ADD THIS
 });
 
 const statsSchema = z.object({
@@ -83,7 +84,7 @@ const columns: ColumnDef<Appointment>[] = [
     header: "Date",
     cell: ({ row }) => (
       <div className="text-muted-foreground">
-        {row.original.appointment_date}
+        {row.original.date_de_rendezvous}
       </div>
     ),
   },
@@ -126,6 +127,9 @@ const columns: ColumnDef<Appointment>[] = [
 
 export default function ReceptionistDashboard() {
   const supabase = React.useMemo(() => createClient(), []);
+  const [doctorOptions, setDoctorOptions] = React.useState<Record<string, unknown[]>>({});
+  const [selectedDoctors, setSelectedDoctors] = React.useState<Record<string, string>>({});
+  const [assigning, setAssigning] = React.useState<Record<string, boolean>>({});
 
   const [data, setData] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -191,6 +195,20 @@ export default function ReceptionistDashboard() {
 
     fetchData();
   }, [supabase]);
+  
+  const fetchDoctorsByService = async (serviceId: string) => {
+    const { data, error } = await supabase
+      .from("doctors")
+      .select("id, nom, prenom")
+      .eq("id_service_medical", serviceId);
+  
+    if (error) {
+      console.error(error);
+      return [];
+    }
+  
+    return data;
+  };
 
   const table = useReactTable({
     data,
