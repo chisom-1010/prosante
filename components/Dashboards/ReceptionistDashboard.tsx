@@ -65,6 +65,11 @@ const appointmentSchema = z.object({
 
 const statsSchema = z.object({
   pending: z.number(),
+  accepted: z.number(),
+  postponed: z.number(),
+  cancelled: z.number(),
+  in_progress: z.number(),
+  done: z.number(),
 });
 
 type Appointment = z.infer<typeof appointmentSchema>;
@@ -106,35 +111,137 @@ const columns: ColumnDef<Appointment>[] = [
     id: "actions",
     header: () => <div className="w-full text-right">Action</div>,
     cell: ({ row }) => {
-      const isPending = row.original.status === "en attente";
-
+      const appointment = row.original;
+      const isPending = appointment.status === "en attente";
+  
+      const [doctors, setDoctors] = React.useState<any[]>([]);
+      const [selectedDoctor, setSelectedDoctor] = React.useState("");
+      const [loadingDoctors, setLoadingDoctors] = React.useState(false);
+      const [assigning, setAssigning] = React.useState(false);
+  
+      const supabase = createClient();
+  
+      const loadDoctors = async () => {
+        setLoadingDoctors(true);
+  
+        const { data, error } = await supabase
+          .from("doctors")
+          .select("id, nom, prenom")
+          .eq("id_service_medical", appointment.id_service_medical);
+  
+        if (!error && data) setDoctors(data);
+  
+        setLoadingDoctors(false);
+      };
+  
+      const handleAssign = async () => {
+        if (!selectedDoctor) return;
+  
+        setAssigning(true);
+  
+        const { error } = await supabase
+          .from("demande_de_consultation")
+          .update({
+            status: "accepté",
+            id_doctor: selectedDoctor, // 👈 IMPORTANT column
+          })
+          .eq("id", appointment.id);
+  
+        if (error) {
+          console.error(error);
+        } else {
+          window.location.reload();
+        }
+  
+        setAssigning(false);
+      };
+  
       return (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           {isPending ? (
-            <Button size="sm">ACCEPTER</Button>
+            <>
+              <Select
+                onOpenChange={(open) => {
+                  if (open && doctors.length === 0) {
+                    loadDoctors(); // lazy load
+                  }
+                }}
+                onValueChange={setSelectedDoctor}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Choisir médecin" />
+                </SelectTrigger>
+  
+                <SelectContent>
+                  {loadingDoctors ? (
+                    <SelectItem value="loading" disabled>
+                      Chargement...
+                    </SelectItem>
+                  ) : doctors.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      Aucun médecin
+                    </SelectItem>
+                  ) : (
+                    doctors.map((doc) => (
+                      <SelectItem key={doc.id} value={doc.id}>
+                        Dr. {doc.prenom} {doc.nom}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+  
+              <Button
+                size="sm"
+                disabled={!selectedDoctor || assigning}
+                onClick={handleAssign}
+              >
+                {assigning ? "..." : "VALIDER"}
+              </Button>
+            </>
           ) : (
-            <Button variant="outline" size="sm">
-              DÉTAILS
-            </Button>
+            <Select
+              defaultValue={appointment.status}
+              onValueChange={(value) => updateStatus(appointment.id, value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+  
+              <SelectContent>
+                <SelectItem value="accepté">Accepté</SelectItem>
+                <SelectItem value="reporté">Reporté</SelectItem>
+                <SelectItem value="annulé">Annulé</SelectItem>
+                <SelectItem value="en cours">En cours</SelectItem>
+                <SelectItem value="terminé">Terminé</SelectItem>
+              </SelectContent>
+            </Select>
           )}
         </div>
       );
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
+  }
 ];
 
 export default function ReceptionistDashboard() {
   const supabase = React.useMemo(() => createClient(), []);
-  const [doctorOptions, setDoctorOptions] = React.useState<Record<string, unknown[]>>({});
-  const [selectedDoctors, setSelectedDoctors] = React.useState<Record<string, string>>({});
+  const [doctorOptions, setDoctorOptions] = React.useState<
+    Record<string, unknown[]>
+  >({});
+  const [selectedDoctors, setSelectedDoctors] = React.useState<
+    Record<string, string>
+  >({});
   const [assigning, setAssigning] = React.useState<Record<string, boolean>>({});
 
   const [data, setData] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [stats, setStats] = React.useState<ReceptionistStats>({
     pending: 0,
+    accepted: 0,
+    postponed: 0,
+    cancelled: 0,
+    in_progress: 0,
+    done: 0,  
   });
 
   const [rowSelection, setRowSelection] = React.useState({});
@@ -195,18 +302,18 @@ export default function ReceptionistDashboard() {
 
     fetchData();
   }, [supabase]);
-  
+
   const fetchDoctorsByService = async (serviceId: string) => {
     const { data, error } = await supabase
       .from("doctors")
       .select("id, nom, prenom")
       .eq("id_service_medical", serviceId);
-  
+
     if (error) {
       console.error(error);
       return [];
     }
-  
+
     return data;
   };
 
@@ -243,7 +350,7 @@ export default function ReceptionistDashboard() {
                 <p className="text-xs font-semibold tracking-widest text-muted-foreground">
                   RENDEZ-VOUS ACCEPTÉS
                 </p>
-                <p className="text-6xl font-light">{stats.pending}</p>
+                <p className="text-6xl font-light">{stats.accepted}</p>
               </div>
             </CardContent>
           </Card>
