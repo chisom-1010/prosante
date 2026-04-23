@@ -53,23 +53,25 @@ import {
   ArrowRightDoubleIcon,
   LeftToRightListBulletIcon,
 } from "@hugeicons/core-free-icons";
+import AppointmentActions from "../actions/AppointmentActions";
 
 const appointmentSchema = z.object({
-  id: z.union([z.string(), z.number()]),
+  id: z.union([z.uuid()]),
   status: z.string(),
   patient_name: z.string(),
   date_de_rendezvous: z.string(),
   tranche_horaires: z.string(),
-  id_service_medical: z.string(), // ✅ ADD THIS
+  id_service_medical: z.string(),
+  service: z.string(),
 });
 
 const statsSchema = z.object({
-  pending: z.number(),
-  accepted: z.number(),
-  postponed: z.number(),
-  cancelled: z.number(),
-  in_progress: z.number(),
-  done: z.number(),
+  pending: z.int(),
+  accepted: z.int(),
+  postponed: z.int(),
+  cancelled: z.int(),
+  in_progress: z.int(),
+  done: z.int(),
 });
 
 type Appointment = z.infer<typeof appointmentSchema>;
@@ -108,131 +110,23 @@ const columns: ColumnDef<Appointment>[] = [
     ),
   },
   {
+    accessorKey: "service",
+    header: "Service Medical",
+    cell: ({ row }) => (
+      <div className="capitalize text-muted-foreground">
+        {row.original.service}
+      </div>
+    ),
+  },
+  {
     id: "actions",
-    header: () => <div className="w-full text-right">Action</div>,
-    cell: ({ row }) => {
-      const appointment = row.original;
-      const isPending = appointment.status === "en attente";
-  
-      const [doctors, setDoctors] = React.useState<any[]>([]);
-      const [selectedDoctor, setSelectedDoctor] = React.useState("");
-      const [loadingDoctors, setLoadingDoctors] = React.useState(false);
-      const [assigning, setAssigning] = React.useState(false);
-  
-      const supabase = createClient();
-  
-      const loadDoctors = async () => {
-        setLoadingDoctors(true);
-  
-        const { data, error } = await supabase
-          .from("doctors")
-          .select("id, nom, prenom")
-          .eq("id_service_medical", appointment.id_service_medical);
-  
-        if (!error && data) setDoctors(data);
-  
-        setLoadingDoctors(false);
-      };
-  
-      const handleAssign = async () => {
-        if (!selectedDoctor) return;
-  
-        setAssigning(true);
-  
-        const { error } = await supabase
-          .from("demande_de_consultation")
-          .update({
-            status: "accepté",
-            id_doctor: selectedDoctor, // 👈 IMPORTANT column
-          })
-          .eq("id", appointment.id);
-  
-        if (error) {
-          console.error(error);
-        } else {
-          window.location.reload();
-        }
-  
-        setAssigning(false);
-      };
-  
-      return (
-        <div className="flex justify-end gap-2">
-          {isPending ? (
-            <>
-              <Select
-                onOpenChange={(open) => {
-                  if (open && doctors.length === 0) {
-                    loadDoctors(); // lazy load
-                  }
-                }}
-                onValueChange={setSelectedDoctor}
-              >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Choisir médecin" />
-                </SelectTrigger>
-  
-                <SelectContent>
-                  {loadingDoctors ? (
-                    <SelectItem value="loading" disabled>
-                      Chargement...
-                    </SelectItem>
-                  ) : doctors.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      Aucun médecin
-                    </SelectItem>
-                  ) : (
-                    doctors.map((doc) => (
-                      <SelectItem key={doc.id} value={doc.id}>
-                        Dr. {doc.prenom} {doc.nom}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-  
-              <Button
-                size="sm"
-                disabled={!selectedDoctor || assigning}
-                onClick={handleAssign}
-              >
-                {assigning ? "..." : "VALIDER"}
-              </Button>
-            </>
-          ) : (
-            <Select
-              defaultValue={appointment.status}
-              onValueChange={(value) => updateStatus(appointment.id, value)}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-  
-              <SelectContent>
-                <SelectItem value="accepté">Accepté</SelectItem>
-                <SelectItem value="reporté">Reporté</SelectItem>
-                <SelectItem value="annulé">Annulé</SelectItem>
-                <SelectItem value="en cours">En cours</SelectItem>
-                <SelectItem value="terminé">Terminé</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      );
-    },
-  }
+    header: () => <div className="text-center">Action</div>,
+    cell: ({ row }) => <AppointmentActions appointment={row.original} />,
+  },
 ];
 
 export default function ReceptionistDashboard() {
   const supabase = React.useMemo(() => createClient(), []);
-  const [doctorOptions, setDoctorOptions] = React.useState<
-    Record<string, unknown[]>
-  >({});
-  const [selectedDoctors, setSelectedDoctors] = React.useState<
-    Record<string, string>
-  >({});
-  const [assigning, setAssigning] = React.useState<Record<string, boolean>>({});
-
   const [data, setData] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [stats, setStats] = React.useState<ReceptionistStats>({
@@ -241,7 +135,7 @@ export default function ReceptionistDashboard() {
     postponed: 0,
     cancelled: 0,
     in_progress: 0,
-    done: 0,  
+    done: 0,
   });
 
   const [rowSelection, setRowSelection] = React.useState({});
@@ -303,20 +197,6 @@ export default function ReceptionistDashboard() {
     fetchData();
   }, [supabase]);
 
-  const fetchDoctorsByService = async (serviceId: string) => {
-    const { data, error } = await supabase
-      .from("doctors")
-      .select("id, nom, prenom")
-      .eq("id_service_medical", serviceId);
-
-    if (error) {
-      console.error(error);
-      return [];
-    }
-
-    return data;
-  };
-
   const table = useReactTable({
     data,
     columns,
@@ -345,12 +225,62 @@ export default function ReceptionistDashboard() {
       <main className="p-6 md:p-12">
         <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2">
           <Card>
-            <CardContent className="py-6">
-              <div className="border-l pl-6">
-                <p className="text-xs font-semibold tracking-widest text-muted-foreground">
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
                   RENDEZ-VOUS ACCEPTÉS
                 </p>
-                <p className="text-6xl font-light">{stats.accepted}</p>
+                <p className="text-3xl font-light">{stats.accepted}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
+                  RENDEZ-VOUS EN ATTENTE
+                </p>
+                <p className="text-3xl font-light">{stats.pending}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
+                  RENDEZ-VOUS REPORTÉS
+                </p>
+                <p className="text-3xl font-light">{stats.postponed}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
+                  RENDEZ-VOUS EN COURS
+                </p>
+                <p className="text-3xl font-light">{stats.in_progress}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
+                  RENDEZ-VOUS ANNULÉ
+                </p>
+                <p className="text-3xl font-light">{stats.cancelled}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3">
+              <div className="border-l pl-2">
+                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
+                  RENDEZ-VOUS FINIS
+                </p>
+                <p className="text-3xl font-light">{stats.done}</p>
               </div>
             </CardContent>
           </Card>
@@ -389,7 +319,7 @@ export default function ReceptionistDashboard() {
                     .getColumn("patient_name")
                     ?.setFilterValue(event.target.value)
                 }
-                className="h-8 w-[220px]"
+                className="h-8 w-55"
               />
             </div>
 

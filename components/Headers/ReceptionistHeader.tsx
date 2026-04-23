@@ -61,9 +61,9 @@ export function ReceptionistHeader() {
   };
 
   return (
-    <header className="px-6 py-6 md:px-12 md:mt-6">
-      <div className="fixed top-10 flex flex-col items-start md:flex-col md:items-start ">
-        <div className="space-y-4">
+    <header className="border-b border-border px-6 py-6 md:px-12">
+      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-widest">
             <Link href="/receptionists">
               {receptionist?.name
@@ -75,14 +75,6 @@ export function ReceptionistHeader() {
 
         <div className="flex flex-col items-start gap-4 md:items-end">
           <nav className="hidden gap-2 md:flex">
-            <Button
-              asChild
-              variant="ghost"
-              size="lg"
-              className="text-sm font-semibold tracking-widest"
-            >
-              <Link href="/receptionists/appointments">RENDEZ-VOUS</Link>
-            </Button>
             <Button
               variant="destructive"
               size="lg"
@@ -97,7 +89,7 @@ export function ReceptionistHeader() {
               type="button"
               variant="default"
               size="lg"
-              className="text-xs font-semibold tracking-widest"
+              className="text-xs font-semibold tracking-widest cursor-pointer"
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
@@ -105,8 +97,9 @@ export function ReceptionistHeader() {
             </Button>
           </nav>
         </div>
-        <Separator className="bg-border" />
       </div>
+
+      <Separator className="bg-border" />
     </header>
   );
 }
