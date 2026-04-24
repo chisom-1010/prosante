@@ -54,6 +54,7 @@ import {
   LeftToRightListBulletIcon,
 } from "@hugeicons/core-free-icons";
 import AppointmentActions from "../actions/AppointmentActions";
+import { updateAppointmentTime } from "../actions/UpdateAppointmentTime";
 
 const appointmentSchema = z.object({
   id: z.union([z.uuid()]),
@@ -98,7 +99,29 @@ const columns: ColumnDef<Appointment>[] = [
   {
     accessorKey: "tranche_horaires",
     header: "Horaires",
-    cell: ({ row }) => <div>{row.original.tranche_horaires}</div>,
+    cell: ({ row }) => {
+      return (
+        <Select
+          defaultValue={row.original.tranche_horaires}
+          onValueChange={(value) =>
+            updateAppointmentTime(row.original.id as string, value)
+          }
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="08h00 - 09h00">08h00 - 09h00</SelectItem>
+            <SelectItem value="09h00 - 10h00">09h00 - 10h00</SelectItem>
+            <SelectItem value="10h00 - 11h00">10h00 - 11h00</SelectItem>
+            <SelectItem value="11h00 - 12h00">11h00 - 12h00</SelectItem>
+            <SelectItem value="14h00 - 15h00">14h00 - 15h00</SelectItem>
+            <SelectItem value="15h00 - 16h00">15h00 - 16h00</SelectItem>
+            <SelectItem value="16h00 - 17h00">16h00 - 17h00</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+    },
   },
   {
     accessorKey: "status",

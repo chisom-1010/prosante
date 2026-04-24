@@ -72,14 +72,6 @@ export function DoctorHeader() {
         <div className="flex flex-col items-start gap-4 md:items-end">
           <nav className="hidden gap-2 md:flex">
             <Button
-              asChild
-              variant="ghost"
-              size="lg"
-              className="text-sm font-semibold tracking-widest"
-            >
-              <Link href="/doctors/appointments">RENDEZ-VOUS</Link>
-            </Button>
-            <Button
               variant="destructive"
               size="lg"
               className="text-sm font-semibold tracking-widest"
