@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LogoutCircle01Icon, CirclePasswordIcon } from "@hugeicons/core-free-icons";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -74,8 +76,14 @@ export function DoctorHeader() {
             <Button
               variant="destructive"
               size="lg"
-             className="h-14 rounded-xl border-[#aab5c7] px-8 text-base tracking-widest hover:text-primary"
+             className="h-14 rounded-xl border-[#aab5c7] px-8 text-base tracking-widest hover:text-primary cursor-pointer flex" 
             >
+               <HugeiconsIcon
+                icon={CirclePasswordIcon}
+                size={24}
+                color="currentColor"
+                strokeWidth={2}
+                />
               <Link href="/doctors/change_password">
                 CHANGER VOTRE MOT DE PASSE
               </Link>
@@ -89,6 +97,12 @@ export function DoctorHeader() {
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
+             <HugeiconsIcon
+                icon={LogoutCircle01Icon}
+                size={24}
+                color="currentColor"
+                strokeWidth={2}
+              />
               {isLoggingOut ? "DÉCONNEXION..." : "DÉCONNECTER"}
             </Button>
           </nav>
