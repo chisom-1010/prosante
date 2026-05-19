@@ -1,8 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+
 import { HugeiconsIcon } from "@hugeicons/react";
+
 import {
   ArrowRight01Icon,
   Calendar03Icon,
@@ -11,313 +16,418 @@ import {
   LibraryIcon,
   Share08Icon,
   Globe02Icon,
+  Shield01Icon,
+  CaduceusIcon,
+  Hospital01Icon,
 } from "@hugeicons/core-free-icons";
 
 const services = [
   {
-    index: "TYPE // 001",
-    title: "CONSULTATION",
+    title: "Consultation Spécialisée",
     description:
-      "Analyse structurelle de la santé individuelle par des experts reconnus.",
+      "Des soins personnalisés menés par des experts médicaux reconnus mondialement.",
     icon: FirstAidKitIcon,
   },
   {
-    index: "TYPE // 002",
-    title: "CHIRURGIE",
+    title: "Chirurgie de Précision",
     description:
-      "Interventions de précision monumentale assistées par robotique de pointe.",
+      "Des interventions assistées par des technologies avancées et une expertise clinique de pointe.",
     icon: Doctor01Icon,
   },
   {
-    index: "TYPE // 003",
-    title: "RECHERCHE",
+    title: "Recherche Clinique",
     description:
-      "Laboratoire d'innovation fondamentale sur la longévité et la médecine cellulaire.",
+      "Une innovation médicale continue pour transformer durablement les standards de santé.",
     icon: LibraryIcon,
   },
 ];
 
 const stats = [
-  { value: "12k+", label: "VIES TRANSFORMÉES" },
-  { value: "99%", label: "PRÉCISION CLINIQUE" },
-  { value: "04", label: "CENTRES MONDIAUX" },
+  {
+    value: "12k+",
+    label: "Patients accompagnés",
+  },
+  {
+    value: "99%",
+    label: "Précision clinique",
+  },
+  {
+    value: "24/7",
+    label: "Urgences médicales",
+  },
 ];
 
-const navigation = ["Philosophie", "Services", "Recherche", "Contact"];
+const navigation = ["Accueil", "Services", "Médecins", "Recherche", "Contact"];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#081b12] text-white">
-      <div className="border-t-4 border-[#33f28b]" />
+    <main className="min-h-screen bg-[#f8f9ff] text-[#0b1c30]">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-6 md:px-10">
+          <Link
+            href="/"
+            className="font-serif text-2xl font-semibold tracking-tight text-[#0b1c30]"
+          >
+            ProSanté
+          </Link>
 
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-2xl font-semibold tracking-tight text-white"
-            >
-              ProSanté
-            </Link>
-          </div>
-
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-8 lg:flex">
             {navigation.map((item) => (
               <a
                 key={item}
-                href={`#${item.toLowerCase()}`}
-                className="text-[14px] uppercase tracking-[0.35em] text-white/75 transition-colors hover:text-[#33f28b]"
+                href="#"
+                className="text-sm font-medium text-[#3e4948] transition-colors hover:text-[#006767]"
               >
                 {item}
               </a>
             ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              className="hidden border-[#d3e4fe] bg-white text-[#0b1c30] hover:bg-[#eff4ff] md:flex"
+              asChild
+            >
+              <Link href="/auth/login">Connexion</Link>
+            </Button>
+
             <Button
               asChild
-              size="lg"
-              className="mt-2 ml-4 h-12 border border-[#33f28b] bg-[#33f28b] px-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#081b12] hover:bg-[#68f7a8]"
+              className="h-11 bg-[#006767] px-5 text-white hover:bg-[#005555]"
             >
-              <Link href="/auth/login">
-                Connexion
-                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-              </Link>
+              <Link href="/auth/signin">Prendre rendez-vous</Link>
             </Button>
-          </nav>
+          </div>
         </div>
       </header>
 
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-6 py-12 md:px-10 md:py-20">
-        <div className="space-y-10">
-          <div className="space-y-5">
-            <div className="max-w-5xl">
-              <h1 className="font-serif text-[4.5rem] leading-[0.9] tracking-[-0.06em] text-[#f1f3f2] sm:text-[5.75rem] lg:text-[8.5rem]">
-                L&apos;ESSENCE
-                <br />
-                DE LA SANTÉ
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,106,106,0.10),transparent_30%)]" />
+
+        <div className="mx-auto grid w-full max-w-7xl items-center gap-16 px-6 py-20 md:px-10 lg:grid-cols-2 lg:py-28">
+          {/* LEFT */}
+          <div className="space-y-8">
+            <Badge className="rounded-full border-0 bg-[#dff7f7] px-4 py-2 text-[#006767] hover:bg-[#dff7f7]">
+              Excellence Médicale Accréditée
+            </Badge>
+
+            <div className="space-y-6">
+              <h1 className="font-serif text-5xl leading-tight tracking-[-0.04em] text-[#0b1c30] sm:text-6xl lg:text-7xl">
+                L’Excellence Clinique au Service de Votre Santé
               </h1>
-            </div>
 
-            <div className="max-w-xl border-l border-[#33f28b] pl-5">
-              <p className="font-serif text-xl leading-relaxed text-white/80 italic">
-                Une approche monumentale et rigoureuse de la gestion médicale.
+              <p className="max-w-xl text-lg leading-8 text-[#4b5563]">
+                Une médecine de précision pensée autour de l’humain, combinant
+                expertise médicale, innovation technologique et accompagnement
+                personnalisé.
               </p>
             </div>
 
-            <Button
-              asChild
-              size="lg"
-              className="mt-2 h-12 border border-[#33f28b] bg-[#33f28b] px-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#081b12] hover:bg-[#68f7a8]"
-            >
-              <Link href="/auth/signin">
-                Prendre rendez-vous
-                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              className="mt-2 ml-4 h-12 border border-[#33f28b] bg-[#33f28b] px-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#081b12] hover:bg-[#68f7a8]"
-            >
-              <Link href="/auth/login">
-                Connexion
-                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-              </Link>
-            </Button>
-          </div>
+            <div className="flex flex-wrap gap-4">
+              <Button
+                asChild
+                size="lg"
+                className="h-12 bg-[#006767] px-6 text-white hover:bg-[#005555]"
+              >
+                <Link href="/auth/signin">
+                  Prendre rendez-vous
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    className="ml-2 size-4"
+                  />
+                </Link>
+              </Button>
 
-          <Separator className="bg-[#1d5c40]" />
-        </div>
-
-        <div
-          id="philosophie"
-          className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start"
-        >
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <span className="h-px w-10 bg-[#33f28b]" />
-              <p className="text-[10px] uppercase tracking-[0.45em] text-white/55">
-                01. Philosophie
-              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12 border-[#c7d2fe] bg-white px-6 hover:bg-[#eff4ff]"
+              >
+                Découvrir nos services
+              </Button>
             </div>
 
-            <p className="max-w-2xl text-lg leading-9 text-white/78 md:text-[1.65rem] md:leading-[1.8]">
-              <span className="mr-2 inline-flex h-14 w-14 items-center justify-center border border-white/30 bg-white/5 font-serif text-4xl text-white">
-                L
-              </span>
-              a précision est l&apos;âme de notre pratique. Chez ProSanté, nous
-              redéfinissons les standards de la gestion médicale avec une
-              rigueur absolue et une clarté monumentale. Notre héritage repose
-              sur l&apos;équilibre entre la haute technologie et
-              l&apos;humanisme le plus profond, créant une structure de soins
-              indestructible et pérenne pour chaque patient.
-            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-[#E2E8F0]">
+                <HugeiconsIcon
+                  icon={Shield01Icon}
+                  className="size-4 text-[#006767]"
+                />
+                <span className="text-sm font-medium">Sécurité certifiée</span>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-[#E2E8F0]">
+                <HugeiconsIcon
+                  icon={Hospital01Icon}
+                  className="size-4 text-[#006767]"
+                />
+                <span className="text-sm font-medium">Centres modernes</span>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-[#E2E8F0]">
+                <HugeiconsIcon
+                  icon={CaduceusIcon}
+                  className="size-4 text-[#006767]"
+                />
+                <span className="text-sm font-medium">Diagnostic avancé</span>
+              </div>
+            </div>
           </div>
 
-          <Card className="overflow-hidden border border-white/10 bg-white/[0.03] p-0 ring-0">
-            <CardContent className="relative p-0">
-              <div className="aspect-[4/5] w-full bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_30%),linear-gradient(180deg,_#5f5f5f_0%,_#2f2f2f_42%,_#151515_100%)]">
-                <div className="relative h-full w-full overflow-hidden bg-black/10">
-                  <div className="absolute inset-x-[18%] bottom-[10%] h-[52%] rounded-t-[44%] rounded-b-[12%] bg-[linear-gradient(180deg,_rgba(240,240,240,0.7),_rgba(120,120,120,0.28))]" />
-                  <div className="absolute inset-x-[8%] bottom-[10%] h-[40%] skew-x-[-16deg] rounded-[8%] bg-[repeating-linear-gradient(180deg,_rgba(255,255,255,0.35),_rgba(255,255,255,0.35)_1px,_rgba(0,0,0,0.06)_1px,_rgba(0,0,0,0.06)_5px)] opacity-90" />
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.35))]" />
-                </div>
-              </div>
+          {/* RIGHT */}
+          <div className="relative">
+            <div className="overflow-hidden rounded-3xl border border-[#E2E8F0] bg-white shadow-[0_20px_60px_rgba(26,54,93,0.08)]">
+              <Image
+                src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?q=80&w=1200&auto=format&fit=crop"
+                alt="Medical Team"
+                width={1200}
+                height={1400}
+                className="h-[620px] w-full object-cover"
+              />
+            </div>
 
-              <div className="absolute bottom-4 right-4 border border-[#33f28b]/40 bg-[#33f28b] px-4 py-2 text-[9px] font-medium uppercase tracking-[0.3em] text-[#081b12]">
-                Fragment // Structure & Clarté
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+            <Card className="absolute -bottom-6 -left-6 border-0 bg-white shadow-2xl">
+              <CardContent className="space-y-3 p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#dff7f7]">
+                    <HugeiconsIcon
+                      icon={Calendar03Icon}
+                      className="size-5 text-[#006767]"
+                    />
+                  </div>
 
-      <section id="services" className="border-y-4 border-[#33f28b]">
-        <div className="mx-auto grid w-full max-w-7xl gap-0 md:grid-cols-3">
-          {services.map((service) => (
-            <Card
-              key={service.title}
-              className="min-h-[340px] border-0 border-r border-white/10 bg-transparent py-0 text-white ring-0 last:border-r-0"
-            >
-              <CardContent className="flex h-full flex-col justify-between px-6 py-10 md:px-8">
-                <div className="space-y-6">
-                  <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">
-                    {service.index}
-                  </p>
-                  <div className="space-y-4">
-                    <h2 className="font-serif text-4xl tracking-[-0.04em] text-[#eef1ef]">
-                      {service.title}
-                    </h2>
-                    <p className="max-w-sm text-sm leading-7 text-white/65">
-                      {service.description}
+                  <div>
+                    <p className="text-sm text-[#6b7280]">Disponibilité</p>
+
+                    <p className="font-semibold text-[#0b1c30]">
+                      Rendez-vous sous 24h
                     </p>
                   </div>
                 </div>
-
-                <HugeiconsIcon
-                  icon={service.icon}
-                  strokeWidth={1.8}
-                  className="size-6 text-white"
-                />
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
       </section>
 
-      <section className="bg-[#33f28b] text-[#081b12]">
-        <div className="mx-auto grid w-full max-w-7xl gap-0 md:grid-cols-3">
-          {stats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className={`px-6 py-12 md:px-8 md:py-14 ${
-                index !== stats.length - 1
-                  ? "border-b border-[#081b12]/10 md:border-r md:border-b-0"
-                  : ""
-              }`}
-            >
-              <div className="space-y-4">
-                <p className="text-6xl font-semibold tracking-[-0.08em] md:text-7xl">
-                  {stat.value}
-                </p>
-                <p className="text-[10px] uppercase tracking-[0.45em] text-[#081b12]/70">
-                  {stat.label}
-                </p>
-              </div>
+      {/* STATS */}
+      <section className="border-y border-[#dbe4f0] bg-[#eaf2ff]">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-6 py-12 md:grid-cols-3 md:px-10">
+          {stats.map((stat) => (
+            <div key={stat.label} className="space-y-3 text-center">
+              <h2 className="text-5xl font-semibold tracking-tight text-[#0b1c30]">
+                {stat.value}
+              </h2>
+
+              <p className="text-sm font-medium uppercase tracking-[0.08em] text-[#5f6b7a]">
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.04),_transparent_45%),linear-gradient(180deg,_#0a1f15_0%,_#081b12_100%)]">
-        <div className="mx-auto flex min-h-[360px] w-full max-w-7xl flex-col items-center justify-center px-6 py-16 text-center md:px-10">
-          <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-serif text-[5rem] leading-none tracking-[-0.08em] text-white/[0.08] sm:text-[7rem] lg:text-[10rem]">
-            ProSanté
-          </p>
+      {/* SERVICES */}
+      <section className="py-24">
+        <div className="mx-auto w-full max-w-7xl px-6 md:px-10">
+          <div className="mx-auto max-w-3xl text-center">
+            <Badge className="mb-5 bg-[#dff7f7] text-[#006767] hover:bg-[#dff7f7]">
+              Nos Services
+            </Badge>
 
-          <div className="relative z-10 space-y-4">
-            <p className="text-[10px] uppercase tracking-[0.45em] text-white/75">
-              Établi en 2026 — Lomé, Togo
-            </p>
-            <div className="mx-auto h-px w-24 bg-[#6aeaa2]/60" />
-          </div>
-        </div>
-      </section>
+            <h2 className="font-serif text-4xl tracking-tight text-[#0b1c30] md:text-5xl">
+              Une expertise médicale pensée pour chaque patient
+            </h2>
 
-      <footer id="contact" className="border-t-4 border-[#33f28b]">
-        <div className="mx-auto grid w-full max-w-7xl gap-12 px-6 py-12 md:grid-cols-4 md:px-10">
-          <div className="space-y-6">
-            <h3 className="font-serif text-3xl tracking-[-0.04em] text-[#eef1ef]">
-              ProSanté
-            </h3>
-            <p className="max-w-xs text-[10px] uppercase tracking-[0.32em] text-white/55">
-              Santé. Rigueur. Héritage.
-              <br />
-              © 2026 ProSanté Group.
-              <br />
-              Tous droits réservés.
+            <p className="mt-6 text-lg leading-8 text-[#5f6b7a]">
+              Des disciplines médicales avancées réunies dans un environnement
+              moderne, humain et technologique.
             </p>
           </div>
 
-          <div className="space-y-5">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-[#33f28b]">
-              Navigation
-            </p>
-            <div className="flex flex-col gap-3 font-serif text-2xl text-white/85">
-              {["Philosophie", "Expertise", "Recherche", "Carrières"].map(
-                (item) => (
-                  <a
-                    key={item}
-                    href="#"
-                    className="transition-colors hover:text-[#33f28b]"
-                  >
-                    {item}
-                  </a>
-                ),
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-[#33f28b]">
-              Localisation
-            </p>
-            <div className="space-y-3 text-xs uppercase tracking-[0.28em] text-white/75">
-              <p>12 Avenue Montaigne, Paris</p>
-              <p>Harvard, Londres</p>
-              <p>Upper East Side, NYC</p>
-              <p>The Bund, Shanghai</p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-[#33f28b]">
-              Contact
-            </p>
-            <div className="space-y-6">
-              <a
-                href="mailto:contact@ProSanté.com"
-                className="font-serif text-2xl text-white/85 transition-colors hover:text-[#33f28b]"
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
+            {services.map((service) => (
+              <Card
+                key={service.title}
+                className="group border-[#E2E8F0] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(26,54,93,0.08)]"
               >
-                contact@ProSanté.com
-              </a>
-              <div className="flex items-center gap-4 text-white/70">
-                <HugeiconsIcon
-                  icon={Globe02Icon}
-                  strokeWidth={1.8}
-                  className="size-5"
-                />
-                <HugeiconsIcon
-                  icon={Share08Icon}
-                  strokeWidth={1.8}
-                  className="size-5"
-                />
-                <HugeiconsIcon
-                  icon={Calendar03Icon}
-                  strokeWidth={1.8}
-                  className="size-5"
-                />
-              </div>
+                <CardContent className="space-y-8 p-8">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#dff7f7]">
+                    <HugeiconsIcon
+                      icon={service.icon}
+                      className="size-7 text-[#006767]"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-serif text-3xl tracking-tight text-[#0b1c30]">
+                      {service.title}
+                    </h3>
+
+                    <p className="leading-7 text-[#5f6b7a]">
+                      {service.description}
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    className="px-0 text-[#006767] hover:bg-transparent hover:text-[#005555]"
+                  >
+                    En savoir plus
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PHILOSOPHY */}
+      <section className="bg-white py-24">
+        <div className="mx-auto grid w-full max-w-7xl items-center gap-16 px-6 md:px-10 lg:grid-cols-2">
+          <div className="relative">
+            <div className="overflow-hidden rounded-3xl border border-[#E2E8F0] shadow-[0_20px_50px_rgba(26,54,93,0.08)]">
+              <Image
+                src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1200&auto=format&fit=crop"
+                alt="Hospital"
+                width={1200}
+                height={1200}
+                className="h-[620px] w-full object-cover"
+              />
             </div>
           </div>
+
+          <div className="space-y-8">
+            <Badge className="bg-[#dff7f7] text-[#006767] hover:bg-[#dff7f7]">
+              Notre Mission
+            </Badge>
+
+            <h2 className="font-serif text-4xl leading-tight tracking-tight text-[#0b1c30] md:text-5xl">
+              Une médecine d’excellence centrée sur l’humain
+            </h2>
+
+            <p className="text-lg leading-8 text-[#5f6b7a]">
+              Chez ProSanté, nous croyons qu’une grande médecine repose autant
+              sur la précision clinique que sur la qualité de l’accompagnement
+              humain.
+            </p>
+
+            <p className="text-lg leading-8 text-[#5f6b7a]">
+              Notre institution associe innovation médicale, recherche
+              scientifique et attention personnalisée pour offrir une expérience
+              de soin moderne, rassurante et durable.
+            </p>
+
+            <Button
+              variant="outline"
+              className="h-12 border-[#c7d2fe] bg-white px-6 hover:bg-[#eff4ff]"
+            >
+              Lire notre histoire
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-[#006767] py-20 text-white">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-8 px-6 text-center md:px-10 lg:flex-row lg:text-left">
+          <div className="max-w-2xl">
+            <h2 className="font-serif text-4xl leading-tight tracking-tight md:text-5xl">
+              Votre santé mérite une expertise d’exception
+            </h2>
+
+            <p className="mt-5 text-lg leading-8 text-white/80">
+              Prenez rendez-vous avec nos spécialistes et bénéficiez d’un
+              accompagnement médical personnalisé.
+            </p>
+          </div>
+
+          <Button
+            size="lg"
+            className="h-12 bg-white px-6 text-[#006767] hover:bg-white/90"
+          >
+            Réserver une consultation
+          </Button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-[#E2E8F0] bg-[#f8f9ff]">
+        <div className="mx-auto grid w-full max-w-7xl gap-14 px-6 py-16 md:grid-cols-4 md:px-10">
+          <div className="space-y-5">
+            <h3 className="font-serif text-3xl text-[#0b1c30]">ProSanté</h3>
+
+            <p className="leading-7 text-[#5f6b7a]">
+              Une institution médicale moderne dédiée à l’excellence clinique et
+              à l’innovation humaine.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            <h4 className="font-semibold text-[#0b1c30]">Navigation</h4>
+
+            <div className="flex flex-col gap-3 text-[#5f6b7a]">
+              {navigation.map((item) => (
+                <a
+                  key={item}
+                  href="#"
+                  className="transition-colors hover:text-[#006767]"
+                >
+                  {item}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <h4 className="font-semibold text-[#0b1c30]">Centres</h4>
+
+            <div className="space-y-3 text-[#5f6b7a]">
+              <p>Lomé, Togo</p>
+              <p>Paris, France</p>
+              <p>Londres, Royaume-Uni</p>
+              <p>New York, USA</p>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <h4 className="font-semibold text-[#0b1c30]">Contact</h4>
+
+            <a
+              href="mailto:contact@prosante.com"
+              className="block text-[#5f6b7a] transition-colors hover:text-[#006767]"
+            >
+              contact@prosante.com
+            </a>
+
+            <div className="flex items-center gap-4 pt-2">
+              <HugeiconsIcon
+                icon={Globe02Icon}
+                className="size-5 text-[#5f6b7a]"
+              />
+
+              <HugeiconsIcon
+                icon={Share08Icon}
+                className="size-5 text-[#5f6b7a]"
+              />
+
+              <HugeiconsIcon
+                icon={Calendar03Icon}
+                className="size-5 text-[#5f6b7a]"
+              />
+            </div>
+          </div>
+        </div>
+
+        <Separator className="bg-[#E2E8F0]" />
+
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 text-sm text-[#7a8797] md:px-10">
+          <p>© 2026 ProSanté. Tous droits réservés.</p>
+
+          <p>Human-Centric Clinical Excellence</p>
         </div>
       </footer>
     </main>

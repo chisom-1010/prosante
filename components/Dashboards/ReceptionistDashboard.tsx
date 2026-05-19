@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -51,7 +50,14 @@ import {
   ArrowLeftDoubleIcon,
   ArrowRight01Icon,
   ArrowRightDoubleIcon,
+  Cancel01Icon,
+  CheckmarkCircle02Icon,
   LeftToRightListBulletIcon,
+  Login03Icon,
+  Search01Icon,
+  TaskDone01Icon,
+  Time04Icon,
+  UserAccountIcon,
 } from "@hugeicons/core-free-icons";
 import AppointmentActions from "../actions/AppointmentActions";
 import { updateAppointmentTime } from "../actions/UpdateAppointmentTime";
@@ -64,6 +70,7 @@ const appointmentSchema = z.object({
   tranche_horaires: z.string(),
   id_service_medical: z.string(),
   service: z.string(),
+  doctor_name: z.string().nullable().optional(),
 });
 
 const statsSchema = z.object({
@@ -78,27 +85,71 @@ const statsSchema = z.object({
 type Appointment = z.infer<typeof appointmentSchema>;
 type ReceptionistStats = z.infer<typeof statsSchema>;
 
+const getStatusBadge = (status: string) => {
+  const normalized = status.toLowerCase();
+
+  if (normalized.includes("accept")) {
+    return "bg-emerald-100 text-emerald-700";
+  }
+
+  if (normalized.includes("attente")) {
+    return "bg-blue-100 text-blue-700";
+  }
+
+  if (normalized.includes("cours")) {
+    return "bg-cyan-100 text-cyan-700";
+  }
+
+  if (normalized.includes("annul")) {
+    return "bg-red-100 text-red-700";
+  }
+
+  return "bg-slate-100 text-slate-700";
+};
+
 const columns: ColumnDef<Appointment>[] = [
   {
     accessorKey: "patient_name",
-    header: "Patient",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.original.patient_name}</div>
-    ),
+    header: "PATIENT",
+    cell: ({ row }) => {
+      const initials = row.original.patient_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2);
+
+      return (
+        <div className="flex items-center gap-3">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-[#dce7ff] font-semibold text-[#3f5d94]">
+            {initials}
+          </div>
+
+          <div>
+            <p className="font-medium text-[#14233c]">
+              {row.original.patient_name}
+            </p>
+
+            <p className="text-xs text-muted-foreground">
+              ID: #{String(row.original.id).slice(0, 4)}
+            </p>
+          </div>
+        </div>
+      );
+    },
     enableHiding: false,
   },
   {
     accessorKey: "appointment_date",
-    header: "Date",
+    header: "DATE",
     cell: ({ row }) => (
-      <div className="text-muted-foreground">
+      <div className="font-medium text-[#1f2f46]">
         {row.original.date_de_rendezvous}
       </div>
     ),
   },
   {
     accessorKey: "tranche_horaires",
-    header: "Horaires",
+    header: "HORAIRES",
     cell: ({ row }) => {
       return (
         <Select
@@ -107,17 +158,38 @@ const columns: ColumnDef<Appointment>[] = [
             updateAppointmentTime(row.original.id as string, value)
           }
         >
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[160px] border-[#d4dbe8] bg-white">
             <SelectValue />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="08h00 - 09h00">08h00 - 09h00</SelectItem>
-            <SelectItem value="09h00 - 10h00">09h00 - 10h00</SelectItem>
-            <SelectItem value="10h00 - 11h00">10h00 - 11h00</SelectItem>
-            <SelectItem value="11h00 - 12h00">11h00 - 12h00</SelectItem>
-            <SelectItem value="14h00 - 15h00">14h00 - 15h00</SelectItem>
-            <SelectItem value="15h00 - 16h00">15h00 - 16h00</SelectItem>
-            <SelectItem value="16h00 - 17h00">16h00 - 17h00</SelectItem>
+            <SelectItem value="08h00 - 09h00">
+              08h00 - 09h00
+            </SelectItem>
+
+            <SelectItem value="09h00 - 10h00">
+              09h00 - 10h00
+            </SelectItem>
+
+            <SelectItem value="10h00 - 11h00">
+              10h00 - 11h00
+            </SelectItem>
+
+            <SelectItem value="11h00 - 12h00">
+              11h00 - 12h00
+            </SelectItem>
+
+            <SelectItem value="14h00 - 15h00">
+              14h00 - 15h00
+            </SelectItem>
+
+            <SelectItem value="15h00 - 16h00">
+              15h00 - 16h00
+            </SelectItem>
+
+            <SelectItem value="16h00 - 17h00">
+              16h00 - 17h00
+            </SelectItem>
           </SelectContent>
         </Select>
       );
@@ -125,26 +197,95 @@ const columns: ColumnDef<Appointment>[] = [
   },
   {
     accessorKey: "status",
-    header: "Statut",
+    header: "STATUT",
     cell: ({ row }) => (
-      <div className="capitalize text-muted-foreground">
+      <div
+        className={`inline-flex rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusBadge(
+          row.original.status
+        )}`}
+      >
         {row.original.status}
       </div>
     ),
   },
   {
     accessorKey: "service",
-    header: "Service Medical",
+    header: "SERVICE MÉDICAL",
     cell: ({ row }) => (
-      <div className="capitalize text-muted-foreground">
+      <div className="font-medium text-[#1f2f46]">
         {row.original.service}
       </div>
     ),
   },
+
+  // ✅ Doctor Pill
+  {
+    accessorKey: "doctor_name",
+    header: "MÉDECIN",
+    cell: ({ row }) => {
+      const doctor = row.original.doctor_name;
+
+      return doctor ? (
+        <div className="inline-flex items-center rounded-full bg-[#d9f3ef] px-4 py-1 text-sm font-medium text-[#0c6b67]">
+          Dr. {doctor}
+        </div>
+      ) : (
+        <div className="inline-flex items-center rounded-full bg-slate-100 px-4 py-1 text-sm text-slate-500">
+          Non assigné
+        </div>
+      );
+    },
+  },
+
   {
     id: "actions",
-    header: () => <div className="text-center">Action</div>,
+    header: () => <div className="text-center">ACTION</div>,
     cell: ({ row }) => <AppointmentActions appointment={row.original} />,
+  },
+];
+
+const statsCards = [
+  {
+    label: "Rendez-vous Acceptés",
+    key: "accepted",
+    icon: CheckmarkCircle02Icon,
+    color: "text-[#0c7a75]",
+    bg: "bg-[#dff4f0]",
+  },
+  {
+    label: "Rendez-vous en Attente",
+    key: "pending",
+    icon: Time04Icon,
+    color: "text-[#4f6ea7]",
+    bg: "bg-[#e4ecff]",
+  },
+  {
+    label: "Rendez-vous Reportés",
+    key: "postponed",
+    icon: Login03Icon,
+    color: "text-[#6d7280]",
+    bg: "bg-[#eef1f5]",
+  },
+  {
+    label: "Rendez-vous en Cours",
+    key: "in_progress",
+    icon: UserAccountIcon,
+    color: "text-[#0c7a75]",
+    bg: "bg-[#dff4f0]",
+  },
+  {
+    label: "Rendez-vous Annulés",
+    key: "cancelled",
+    icon: Cancel01Icon,
+    color: "text-[#cf2f2f]",
+    bg: "bg-[#fde8e8]",
+  },
+  {
+    label: "Rendez-vous Terminés",
+    key: "done",
+    icon: TaskDone01Icon,
+    color: "text-[#1f2f46]",
+    bg: "bg-[#eceff5]",
   },
 ];
 
@@ -152,6 +293,7 @@ export default function ReceptionistDashboard() {
   const supabase = React.useMemo(() => createClient(), []);
   const [data, setData] = React.useState<Appointment[]>([]);
   const [loading, setLoading] = React.useState(true);
+
   const [stats, setStats] = React.useState<ReceptionistStats>({
     pending: 0,
     accepted: 0,
@@ -165,9 +307,11 @@ export default function ReceptionistDashboard() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    []
   );
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -184,10 +328,7 @@ export default function ReceptionistDashboard() {
       ]);
 
       if (appointmentsError) {
-        console.error(
-          "Failed to fetch receptionist dashboard appointments:",
-          appointmentsError,
-        );
+        console.error(appointmentsError);
       } else {
         const parsedAppointments = z
           .array(appointmentSchema)
@@ -195,18 +336,14 @@ export default function ReceptionistDashboard() {
 
         if (parsedAppointments.success) {
           setData(parsedAppointments.data);
-        } else {
-          console.error(
-            "Invalid receptionist appointments payload:",
-            parsedAppointments.error,
-          );
         }
       }
 
-      if (statsError) {
-        console.error("Failed to fetch receptionist stats:", statsError);
-      } else {
-        const firstStat = Array.isArray(statsData) ? statsData[0] : undefined;
+      if (!statsError) {
+        const firstStat = Array.isArray(statsData)
+          ? statsData[0]
+          : undefined;
+
         const parsedStats = statsSchema.safeParse(firstStat);
 
         if (parsedStats.success) {
@@ -230,13 +367,17 @@ export default function ReceptionistDashboard() {
       columnFilters,
       pagination,
     },
+
     getRowId: (row) => String(row.id),
+
     enableRowSelection: true,
+
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
+
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -244,137 +385,111 @@ export default function ReceptionistDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-background lg:px-6 pt-15">
-      <main className="p-6 md:p-12">
-        <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2">
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS ACCEPTÉS
-                </p>
-                <p className="text-3xl font-light">{stats.accepted}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS EN ATTENTE
-                </p>
-                <p className="text-3xl font-light">{stats.pending}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS REPORTÉS
-                </p>
-                <p className="text-3xl font-light">{stats.postponed}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS EN COURS
-                </p>
-                <p className="text-3xl font-light">{stats.in_progress}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS ANNULÉ
-                </p>
-                <p className="text-3xl font-light">{stats.cancelled}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="py-3">
-              <div className="border-l pl-2">
-                <p className="text-lg font-semibold tracking-widest text-muted-foreground">
-                  RENDEZ-VOUS FINIS
-                </p>
-                <p className="text-3xl font-light">{stats.done}</p>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-[#f5f7fc]">
+      <main className="mx-auto max-w-[1500px] px-6 py-10 md:px-10">
+
+        {/* Stats */}
+        <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-6">
+          {statsCards.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Card
+                key={item.key}
+                className="border-[#d6dde8] bg-white shadow-none"
+              >
+                <CardContent className="space-y-5 p-6">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex size-10 items-center justify-center rounded-lg ${item.bg}`}
+                    >
+                      <HugeiconsIcon
+                        icon={Icon}
+                        className={`size-5 ${item.color}`}
+                      />
+                    </div>
+
+                    <div
+                      className={`rounded-md px-3 py-1 text-lg font-semibold ${item.bg} ${item.color}`}
+                    >
+                      {
+                        stats[
+                          item.key as keyof ReceptionistStats
+                        ] as React.ReactNode
+                      }
+                    </div>
+                  </div>
+
+                  <p className="text-lg font-semibold leading-snug text-[#384252]">
+                    {item.label}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-widest">
-            GESTION DES RENDEZ-VOUS
-          </h2>
-          <Link
-            href="/doctors/appointments"
-            className="text-xs text-muted-foreground hover:underline"
-          >
-            TOUT VOIR
-          </Link>
-        </div>
+        {/* Table Card */}
+        <div className="overflow-hidden rounded-2xl border border-[#d6dde8] bg-white">
+          {/* Top */}
+          <div className="flex flex-col justify-between gap-5 border-b border-[#d6dde8] px-8 py-8 lg:flex-row lg:items-center">
+            <h2 className="text-4xl font-bold uppercase tracking-wide text-[#48628c]">
+              Gestion des Rendez-vous
+            </h2>
 
-        <Separator className="mb-8" />
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="relative">
+                <HugeiconsIcon
+                    icon={Search01Icon}
+                    className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#6b7280]"
+                  />
 
-        <div className="w-full flex-col justify-start gap-6">
-          <div className="flex items-center justify-between gap-4 px-1 pb-4">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="appointment-filter" className="sr-only">
-                Rechercher un patient
-              </Label>
-              <Input
-                id="appointment-filter"
-                placeholder="Rechercher par patient..."
-                value={
-                  (table
-                    .getColumn("patient_name")
-                    ?.getFilterValue() as string) ?? ""
-                }
-                onChange={(event) =>
-                  table
-                    .getColumn("patient_name")
-                    ?.setFilterValue(event.target.value)
-                }
-                className="h-8 w-55"
-              />
-            </div>
+                <Input
+                  placeholder="Rechercher par patient"
+                  value={
+                    (table
+                      .getColumn("patient_name")
+                      ?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(event) =>
+                    table
+                      .getColumn("patient_name")
+                      ?.setFilterValue(event.target.value)
+                  }
+                  className="h-14 w-[360px] rounded-xl border-[#d6dde8] bg-white pl-12 text-base"
+                />
+              </div>
 
-            <div className="flex items-center gap-2">
+              {/* Columns */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    className="h-14 rounded-xl border-[#d6dde8]"
+                  >
                     <HugeiconsIcon
                       icon={LeftToRightListBulletIcon}
-                      strokeWidth={2}
-                      data-icon="inline-start"
                     />
+
                     Colonnes
-                    <HugeiconsIcon
-                      icon={ArrowDown01Icon}
-                      strokeWidth={2}
-                      data-icon="inline-end"
-                    />
+
+                    <HugeiconsIcon icon={ArrowDown01Icon} />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
+
+                <DropdownMenuContent align="end" className="w-44">
                   {table
                     .getAllColumns()
                     .filter((column) => column.getCanHide())
                     .map((column) => (
                       <DropdownMenuCheckboxItem
                         key={column.id}
-                        className="capitalize"
                         checked={column.getIsVisible()}
                         onCheckedChange={(value) =>
                           column.toggleVisibility(!!value)
                         }
+                        className="capitalize"
                       >
                         {column.id.replaceAll("_", " ")}
                       </DropdownMenuCheckboxItem>
@@ -384,151 +499,154 @@ export default function ReceptionistDashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
+          {/* Table */}
+          <Table>
+            <TableHeader className="bg-[#eef3ff]">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="border-[#d6dde8]"
+                >
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="h-16 text-sm font-bold uppercase tracking-wide text-[#1d2d44]"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-32 text-center"
+                  >
+                    Chargement...
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className="border-[#d6dde8]"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="py-5 text-base text-[#1f2f46]"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
                   </TableRow>
-                ))}
-              </TableHeader>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-32 text-center"
+                  >
+                    Aucun rendez-vous trouvé.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      Chargement...
-                    </TableCell>
-                  </TableRow>
-                ) : table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      Aucun rendez-vous trouvé.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          {/* Pagination */}
+          <div className="flex flex-col justify-between gap-5 border-t border-[#d6dde8] bg-[#eef3ff] px-8 py-5 lg:flex-row lg:items-center">
+            <div className="flex items-center gap-3">
+              <p className="text-base font-medium text-[#384252]">
+                Lignes par page :
+              </p>
 
-          <div className="flex items-center justify-between px-4 pt-4">
-            <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-              {table.getFilteredSelectedRowModel().rows.length} sur{" "}
-              {table.getFilteredRowModel().rows.length} ligne(s)
-              sélectionnée(s).
+              <Select
+                value={`${table.getState().pagination.pageSize}`}
+                onValueChange={(value) => {
+                  table.setPageSize(Number(value));
+                }}
+              >
+                <SelectTrigger className="w-20 border-[#cbd5e1] bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                      <SelectItem
+                        key={pageSize}
+                        value={`${pageSize}`}
+                      >
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+
+              <p className="ml-4 text-base text-[#384252]">
+                {table.getState().pagination.pageIndex + 1}-
+                {table.getPageCount()} sur {data.length}
+              </p>
             </div>
 
-            <div className="flex w-full items-center gap-8 lg:w-fit">
-              <div className="hidden items-center gap-2 lg:flex">
-                <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                  Lignes par page
-                </Label>
-                <Select
-                  value={`${table.getState().pagination.pageSize}`}
-                  onValueChange={(value) => {
-                    table.setPageSize(Number(value));
-                  }}
-                >
-                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                    <SelectValue
-                      placeholder={table.getState().pagination.pageSize}
-                    />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    <SelectGroup>
-                      {[10, 20, 30, 40, 50].map((pageSize) => (
-                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                className="size-10 border-[#cbd5e1] bg-white"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <HugeiconsIcon icon={ArrowLeft01Icon} />
+              </Button>
+
+              <div className="flex size-10 items-center justify-center rounded-md bg-[#0c6b67] font-semibold text-white">
+                {table.getState().pagination.pageIndex + 1}
               </div>
 
-              <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} sur{" "}
-                {table.getPageCount() || 1}
-              </div>
+              <Button
+                variant="outline"
+                className="size-10 border-[#cbd5e1] bg-white"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <HugeiconsIcon icon={ArrowRight01Icon} />
+              </Button>
 
-              <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => table.setPageIndex(0)}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <span className="sr-only">Aller à la première page</span>
-                  <HugeiconsIcon icon={ArrowLeftDoubleIcon} strokeWidth={2} />
-                </Button>
+              <Button
+                variant="outline"
+                className="hidden size-10 border-[#cbd5e1] bg-white lg:flex"
+                onClick={() =>
+                  table.setPageIndex(
+                    Math.max(table.getPageCount() - 1, 0)
+                  )
+                }
+                disabled={!table.getCanNextPage()}
+              >
+                <HugeiconsIcon icon={ArrowRightDoubleIcon} />
+              </Button>
 
-                <Button
-                  variant="outline"
-                  className="size-8"
-                  size="icon"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <span className="sr-only">Page précédente</span>
-                  <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="size-8"
-                  size="icon"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <span className="sr-only">Page suivante</span>
-                  <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="hidden size-8 lg:flex"
-                  size="icon"
-                  onClick={() =>
-                    table.setPageIndex(Math.max(table.getPageCount() - 1, 0))
-                  }
-                  disabled={!table.getCanNextPage()}
-                >
-                  <span className="sr-only">Aller à la dernière page</span>
-                  <HugeiconsIcon icon={ArrowRightDoubleIcon} strokeWidth={2} />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                className="hidden size-10 border-[#cbd5e1] bg-white lg:flex"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <HugeiconsIcon icon={ArrowLeftDoubleIcon} />
+              </Button>
             </div>
           </div>
         </div>

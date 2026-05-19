@@ -59,7 +59,7 @@ export function DoctorHeader() {
   };
 
   return (
-    <header className="border-b border-border px-6 py-6 md:px-12">
+    <header className="border-b border-border px-6 py-6 md:px-12 bg-[#f5f7fc]">
       <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-widest">
@@ -74,18 +74,18 @@ export function DoctorHeader() {
             <Button
               variant="destructive"
               size="lg"
-              className="text-sm font-semibold tracking-widest"
+             className="h-14 rounded-xl border-[#aab5c7] px-8 text-base tracking-widest hover:text-primary"
             >
               <Link href="/doctors/change_password">
                 CHANGER VOTRE MOT DE PASSE
               </Link>
             </Button>
 
-            <Button
+          <Button
               type="button"
-              variant="default"
               size="lg"
-              className="text-xs font-semibold tracking-widest"
+              variant="outline"
+              className="h-14 rounded-xl border-[#aab5c7] px-8 text-base cursor-pointer hover:bg-primary hover:text-secondary"
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
