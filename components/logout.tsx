@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 
-export function LogoutButton() {
+export default function LogoutButton() {
   const router = useRouter();
 
   const logout = async () => {

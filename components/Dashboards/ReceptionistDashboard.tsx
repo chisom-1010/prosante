@@ -88,19 +88,19 @@ type ReceptionistStats = z.infer<typeof statsSchema>;
 const getStatusBadge = (status: string) => {
   const normalized = status.toLowerCase();
 
-  if (normalized.includes("accept")) {
+  if (normalized.includes("accepté")) {
     return "bg-emerald-100 text-emerald-700";
   }
 
-  if (normalized.includes("attente")) {
+  if (normalized.includes("en attente")) {
     return "bg-blue-100 text-blue-700";
   }
 
-  if (normalized.includes("cours")) {
+  if (normalized.includes("en cours")) {
     return "bg-cyan-100 text-cyan-700";
   }
 
-  if (normalized.includes("annul")) {
+  if (normalized.includes("annulé")) {
     return "bg-red-100 text-red-700";
   }
 

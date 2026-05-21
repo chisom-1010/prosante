@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +12,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Alert01Icon,
+  ArrowRight01Icon,
+  ArrowLeft01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
 interface FormData {
   department: string;
@@ -53,10 +61,12 @@ export default function AppointmentForm() {
     date: undefined,
   });
 
-  const [date, setDate] = useState<Date | undefined>(new Date()); // ✅ NEW
+  const [date, setDate] = useState<Date | undefined>(new Date());
+
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
   const [services, setServices] = useState<
     { id: string; type_de_service: string }[]
   >([]);
@@ -65,17 +75,20 @@ export default function AppointmentForm() {
 
   const logout = async () => {
     const supabase = createClient();
+
     await supabase.auth.signOut();
+
     router.push("/auth/login");
   };
 
-  // ✅ Fetch profile
   useEffect(() => {
     async function fetchUsername() {
       try {
         const response = await fetch("/api/user/profile");
+
         if (response.ok) {
           const data = await response.json();
+
           setFormData((prev) => ({
             ...prev,
             patientName: data.username || "",
@@ -88,20 +101,22 @@ export default function AppointmentForm() {
         setIsLoadingProfile(false);
       }
     }
+
     fetchUsername();
   }, []);
 
-  // ✅ Fetch services
   useEffect(() => {
     const fetchServices = async () => {
       const supabase = createClient();
+
       const { data } = await supabase.rpc("get_services");
+
       if (data) setServices(data);
     };
+
     fetchServices();
   }, []);
 
-  // Form validation
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
 
@@ -109,26 +124,37 @@ export default function AppointmentForm() {
       toast.error("Veuillez sélectionner un département.", {
         position: "top-center",
       });
+
     if (!formData.selectedSlot)
-      toast.error("Choisir une tranche horaire", { position: "top-center" });
+      toast.error("Choisir une tranche horaire", {
+        position: "top-center",
+      });
+
     if (!formData.date)
-      toast.error("Veuillez choisir une date", { position: "top-center" });
+      toast.error("Veuillez choisir une date", {
+        position: "top-center",
+      });
+
     if (!formData.sexe)
       toast.error("Veuillez sélectionner votre sexe.", {
         position: "top-center",
       });
+
     if (formData.age < 0)
-      toast.error("Veuillez entrer un âge valide.", { position: "top-center" });
+      toast.error("Veuillez entrer un âge valide.", {
+        position: "top-center",
+      });
+
     if (!formData)
       toast.error("Veuillez remplir tous les champs.", {
         position: "top-center",
       });
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0 && date;
   };
 
-  // ✅Submit
   const handleNewAppointment = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
@@ -152,195 +178,290 @@ export default function AppointmentForm() {
     if (error) {
       console.error(error);
     } else {
-      router.push("/patients/appointments"); // ✅ better UX
+      router.push("/patients/appointments");
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6 md:p-12">
-      {/* Main Form Section */}
-      <div className="lg:col-span-2">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="space-y-4">
-            {!isLoadingProfile && formData.patientName && (
-              <p className="text-xl font-medium text-foreground tracking-wide">
-                BIENVENUE, {formData.patientName} ! SERVICES AUX PATIENTS - 2024
-                <Button
-                  variant="destructive"
-                  className="ml-75 cursor-pointer text-md p-5 text-primary"
-                  onClick={logout}
-                >
-                  Déconnecter-vous
-                </Button>
-              </p>
-            )}
-            <h1 className="text-5xl md:text-6xl italic font-light mt-10">
-              Demander une Consultation
-            </h1>
-            <Separator className="mt-6 h-0.5" />
+    <div className="min-h-screen bg-[#f4f6f8] px-6 py-14">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-16">
+          <button
+            onClick={() => window.history.back()}
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-5 py-2.5 transition hover:bg-emerald-100 cursor-pointer border border-slate-200 border-2px"
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              strokeWidth={2}
+              className="h-4 w-4 text-emerald-700"
+              />
+
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">
+             Retour
+        </span>
+       </button>
+</div>
+        {/* HEADER */}
+        <div className="mb-10 text-center">
+          <h1 className="text-5xl font-black tracking-tight text-[#112031] md:text-6xl">
+            Demander une Consultation
+          </h1>
+
+          <p className="mt-4 text-xl italic text-[#7b8794]">
+            Prenez rendez-vous avec nos spécialistes en quelques clics.
+          </p>
+        </div>
+
+        {/* ALERT */}
+        <div className="mb-8 flex items-start gap-4 rounded-xl border-l-4 border-[#0b7a75] bg-[#e8f6f4] px-6 py-5">
+          <HugeiconsIcon
+            icon={Alert01Icon}
+            className="mt-1 size-5 text-[#0b7a75]"
+          />
+
+          <div>
+            <p className="text-sm font-black uppercase tracking-wider text-[#0b4d4a]">
+              Avis de Santé
+            </p>
+
+            <p className="mt-1 text-base text-[#0c6b67]">
+              Ce formulaire est une demande uniquement. Un membre de notre
+              équipe vous contactera pour confirmer l&apos;horaire définitif.
+            </p>
           </div>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleNewAppointment} className="space-y-8">
-            {/* Department Selection */}
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <Label className="text-xl font-bold tracking-widest">
-                  SÉLECTIONNER LE DÉPARTEMENT
-                </Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, department: value })
-                  }
-                >
-                  <SelectTrigger className="w-md text-md border-0 border-b rounded-none">
-                    <SelectValue placeholder="Selectioner..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((service) => (
-                      <SelectItem
-                        key={service.id}
-                        value={service.id}
-                        className="text-md"
-                      >
-                        {service.type_de_service}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* CARD */}
+        <Card className="overflow-hidden rounded-[28px] border-none bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
+          <CardContent className="p-8 md:p-12">
+            {/* TOP BAR */}
+            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              {!isLoadingProfile && formData.patientName && (
+                <div>
+                  <p className="text-lg font-semibold text-[#112031]">
+                    Bonjour, {formData.patientName}
+                  </p>
 
-              <div className="space-y-2">
-                <Label className="text-xl font-bold tracking-widest">
-                  SEXE
-                </Label>
-                <Select
-                  value={formData.sexe.toLowerCase().trim()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, sexe: value })
-                  }
-                >
-                  <SelectTrigger className="border-0 border-b rounded-none focus:ring-0 text-md">
-                    <SelectValue placeholder="Sélectionner..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="homme" className="text-md">
-                      Homme
-                    </SelectItem>
-                    <SelectItem value="femme" className="text-md">
-                      Femme
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <p className="text-sm text-[#7b8794]">
+                    Services aux patients
+                  </p>
+                </div>
+              )}
 
-              <div className="space-y-4">
-                <Label className="text-xl font-bold tracking-widest">
-                  DATE DE RENDEZ-VOUS
-                </Label>
-
-                <Calendar
-                  mode="single"
-                  selected={formData.date}
-                  onSelect={(selectedDate) => setFormData((prev) => ({ ...prev, date: selectedDate }))}
-                  disabled={(d) =>
-                    d < new Date(new Date().setHours(0, 0, 0, 0))
-                  }
-                  className="w-md border"
-                />
-              </div>
-              <div />
-            </div>
-
-            {/* Time Slots */}
-            <div className="space-y-3 pt-4">
-              <Label className="text-xl font-medium tracking-widest">
-                TRANCHES HORAIRES
-              </Label>
-              <ToggleGroup
-                type="single"
-                value={formData.selectedSlot}
-                onValueChange={(value) => {
-                  if (value) setFormData({ ...formData, selectedSlot: value });
-                }}
-                className="justify-start gap-2"
+              <Button
+                variant="outline"
+                onClick={logout}
+                className="h-11 rounded-xl border-[#d9dee7] px-5 text-sm font-semibold text-[#112031] hover:bg-[#f5f7fb]"
               >
-                {TIME_SLOTS.map((slot) => (
-                  <ToggleGroupItem
-                    key={slot}
-                    value={slot}
-                    className="text-md border data-[state=on]:bg-primary data-[state=on]:text-white"
-                    variant="default"
-                  >
-                    {slot}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  className="mr-2 size-4"
+                />
+                Déconnecter-vous
+              </Button>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-center gap-8 text-center space-x-3 space-y-6">
-                <Label className="text-xl font-bold tracking-widest">
-                  VOTRE NOM COMPLET
-                </Label>
-                <Input
-                  value={`${formData.patientName} ${formData.patientLastName}`}
-                  disabled
-                  className="border-0 border-b border-input rounded-none focus-visible:ring-0 h-14 text-base w-96"
-                />
-                <Label className="text-xl font-bold tracking-widest">AGE</Label>
-                <Input
-                  placeholder="votre age ici"
-                  value={formData.age}
-                  type="number"
-                  min="0"
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      age: e.target.value === "" ? 0 : Number(e.target.value),
-                    })
-                  }
-                  className="border-0 border-b border-input rounded-none focus-visible:ring-0 h-14 text-base w-36"
-                />
+            {/* FORM */}
+            <form onSubmit={handleNewAppointment} className="space-y-10">
+              {/* SELECTS */}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Sélectionner le Département
+                  </Label>
+
+                  <Select
+                    value={formData.department}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        department: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-[#d8dee8] bg-white text-base shadow-none">
+                      <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem
+                          key={service.id}
+                          value={service.id}
+                          className="text-base"
+                        >
+                          {service.type_de_service}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Sexe
+                  </Label>
+
+                  <Select
+                    value={formData.sexe.toLowerCase().trim()}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        sexe: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-[#d8dee8] bg-white text-base shadow-none">
+                      <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="homme">Homme</SelectItem>
+
+                      <SelectItem value="femme">Femme</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xl font-bold tracking-widest">
-                  DÉCRIVEZ VOTRE PROBLÈME
+              {/* CALENDAR */}
+              <div className="space-y-4">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Date de Rendez-vous
                 </Label>
-                <Input
+
+                <div className="rounded-2xl border border-[#e3e8ef] bg-[#fbfcfd] p-5">
+                  <Calendar
+                    mode="single"
+                    selected={formData.date}
+                    onSelect={(selectedDate) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        date: selectedDate,
+                      }))
+                    }
+                    disabled={(d) =>
+                      d < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* TIME SLOTS */}
+              <div className="space-y-4">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Tranches Horaires
+                </Label>
+
+                <ToggleGroup
+                  type="single"
+                  value={formData.selectedSlot}
+                  onValueChange={(value) => {
+                    if (value)
+                      setFormData({
+                        ...formData,
+                        selectedSlot: value,
+                      });
+                  }}
+                  className="flex flex-wrap justify-start gap-3"
+                >
+                  {TIME_SLOTS.map((slot) => (
+                    <ToggleGroupItem
+                      key={slot}
+                      value={slot}
+                      className="h-12 rounded-full border border-[#d9dee7] px-6 text-sm font-semibold text-[#1f2f46] data-[state=on]:border-[#0b7a75] data-[state=on]:bg-[#0b7a75] data-[state=on]:text-white"
+                      variant="default"
+                    >
+                      {slot}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              {/* PATIENT INFOS */}
+              <div className="grid gap-6 md:grid-cols-[1fr_180px]">
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Votre Nom Complet
+                  </Label>
+
+                  <Input
+                    value={`${formData.patientName} ${formData.patientLastName}`}
+                    disabled
+                    className="h-14 rounded-xl border-[#d8dee8] bg-[#f8fafc] text-base"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Âge
+                  </Label>
+
+                  <Input
+                    placeholder="28"
+                    value={formData.age}
+                    type="number"
+                    min="0"
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        age:
+                          e.target.value === ""
+                            ? 0
+                            : Number(e.target.value),
+                      })
+                    }
+                    className="h-14 rounded-xl border-[#d8dee8] bg-white text-base"
+                  />
+                </div>
+              </div>
+
+              {/* NOTES */}
+              <div className="space-y-3">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Décrivez votre Problème
+                </Label>
+
+                <textarea
                   placeholder="Ex: douleur, fièvre, consultation générale..."
                   value={formData.notes}
                   onChange={(e) =>
-                    setFormData({ ...formData, notes: e.target.value })
+                    setFormData({
+                      ...formData,
+                      notes: e.target.value,
+                    })
                   }
-                  className="border-0 border-b border-input rounded-none focus-visible:ring-0 h-14 text-base"
+                  className="min-h-[140px] w-full rounded-2xl border border-[#d8dee8] bg-white px-5 py-4 text-base outline-none transition focus:border-[#0b7a75]"
                 />
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full py-6 text-lg font-semibold tracking-widest cursor-pointer"
-              disabled={isLoading}
-            >
-              {isLoading ? "Envoi en cours..." : "ENVOYER LA DEMANDE →"}
-            </Button>
-          </form>
-        </div>
-      </div>
-
-      <div className="lg:col-span-1 space-y-8">
-        <Card className="bg-primary text-primary-foreground border-0">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">AVIS DE SANTÉ</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl">Ce formulaire est une demande uniquement.</p>
+              {/* SUBMIT */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="h-16 w-full rounded-2xl bg-[#0b7a75] text-lg font-bold text-white shadow-lg shadow-[#0b7a75]/20 transition hover:bg-[#09645f]"
+              >
+                {isLoading ? (
+                  "Envoi en cours..."
+                ) : (
+                  <>
+                    Envoyer la demande
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
+                      className="ml-3 size-5"
+                    />
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
+
+        {/* FOOTER */}
+        <p className="mt-10 text-center text-sm text-[#98a2b3]">
+          © 2024 Clinical Prestige — Services aux patients.
+        </p>
       </div>
     </div>
   );
