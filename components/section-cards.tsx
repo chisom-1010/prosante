@@ -1,12 +1,9 @@
+// SECTION CARDS
 "use server";
 
 import {
   Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+  CardContent,
 } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -25,89 +22,87 @@ export async function SectionCards() {
 
   const stats = data?.[0];
 
-  console.log(stats);
+  const cards = [
+    {
+      title: "NOMBRE DES MÉDECINS",
+      value: stats?.total_doctors,
+      subtitle: "Médecins actifs",
+      icon: Doctor01Icon,
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-700",
+    },
+    {
+      title: "NOMBRE DE PATIENTS",
+      value: stats?.total_patients,
+      subtitle: "Patients suivis",
+      icon: PatientIcon,
+      iconBg: "bg-indigo-50",
+      iconColor: "text-indigo-700",
+    },
+    {
+      title: "NOMBRE DE RENDEZ-VOUS",
+      value: stats?.total_appointments,
+      subtitle: "Rendez-vous demandés",
+      icon: Calendar01Icon,
+      iconBg: "bg-neutral-100",
+      iconColor: "text-neutral-700",
+    },
+    {
+      title: "NOMBRE DE SERVICES MÉDICAUX",
+      value: stats?.total_services,
+      subtitle: "Services disponibles",
+      icon: FirstAidKitIcon,
+      iconBg: "bg-cyan-50",
+      iconColor: "text-cyan-700",
+    },
+    {
+      title: "NOMBRE DE RÉCEPTIONNISTES",
+      value: stats?.total_receptionists,
+      subtitle: "Réceptionnistes disponibles",
+      icon: OfficeChairIcon,
+      iconBg: "bg-slate-100",
+      iconColor: "text-slate-700",
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-1 gap-4 px-5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-1 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription className="font-medium">
-            Nombres des Médecins
-          </CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats?.total_doctors}
-          </CardTitle>
-          <CardAction>
-            <HugeiconsIcon icon={Doctor01Icon} size={100} strokeWidth={2} />
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">Médecins actifs</div>
-        </CardFooter>
-      </Card>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card, index) => (
+        <Card
+          key={index}
+          className={`border border-slate-200 shadow-none rounded-2xl bg-white ${
+            index === 4 ? "xl:col-span-1" : ""
+          }`}
+        >
+          <CardContent className="flex h-full flex-col justify-between p-8">
+            <div className="flex items-start justify-between">
+              <div className="max-w-[140px]">
+                <p className="text-xs font-semibold uppercase leading-5 tracking-wide text-slate-500">
+                  {card.title}
+                </p>
 
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Nombre de patients</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats?.total_patients}
-          </CardTitle>
-          <CardAction>
-            <HugeiconsIcon icon={PatientIcon} size={100} strokeWidth={2} />
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">Patients</div>
-        </CardFooter>
-      </Card>
+                <h2 className="mt-4 text-5xl font-bold text-slate-900">
+                  {card.value}
+                </h2>
+              </div>
 
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Nombre de rendez-vous</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats?.total_appointments}
-          </CardTitle>
-          <CardAction>
-            <HugeiconsIcon icon={Calendar01Icon} size={100} strokeWidth={2} />
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">Rendez-vous demandés</div>
-        </CardFooter>
-      </Card>
+              <div
+                className={`flex h-16 w-16 items-center justify-center rounded-xl ${card.iconBg}`}
+              >
+                <HugeiconsIcon
+                  icon={card.icon}
+                  strokeWidth={2}
+                  className={`h-8 w-8 ${card.iconColor}`}
+                />
+              </div>
+            </div>
 
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Nombre de services médicaux</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {stats?.total_services}
-          </CardTitle>
-          <CardAction>
-            <HugeiconsIcon icon={FirstAidKitIcon} size={100} strokeWidth={2} />
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">
-            Services Médicaux Disponibles
-          </div>
-        </CardFooter>
-      </Card>
-
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Nombre de réceptionnistes</CardDescription>
-          <CardTitle className="text-3xl font-bold tabular-nums @[250px]/card:text-3xl">
-            {stats?.total_receptionists}
-          </CardTitle>
-          <CardAction>
-            <HugeiconsIcon icon={OfficeChairIcon} size={100} strokeWidth={2} />
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">
-            Réceptionistes Disponibles
-          </div>
-        </CardFooter>
-      </Card>
+            <div className="mt-10 border-t border-slate-200 pt-5">
+              <p className="text-lg text-slate-700">{card.subtitle}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
