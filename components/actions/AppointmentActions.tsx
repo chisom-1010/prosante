@@ -8,6 +8,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { z } from "zod";
 
@@ -78,27 +79,34 @@ export default function AppointmentActions({
 
     setAssigning(true);
 
-    const { error } = await supabase
-      .from("demande_de_consultation")
-      .update({
-        status: "accepté",
-        doctor_id: selectedDoctor,
-      })
-      .eq("id", appointment.id);
-
-    if (!error) {
-      await fetch("/api/assign_appointment", {
+    try {
+      // The server saves the assignment and sends the emails.
+      const res = await fetch("/api/assign_appointment", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           appointmentId: appointment.id,
           doctorId: selectedDoctor,
         }),
       });
+      const data = await res.json().catch(() => null);
 
-       window.location.reload();
+      if (!res.ok) {
+        toast.error(data?.error ?? "Impossible d'assigner le rendez-vous.");
+        return;
+      }
+
+      if (data?.emailsSent === false) {
+        toast.warning(
+          "Rendez-vous assigné, mais les emails n'ont pas pu être envoyés.",
+        );
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+
+      window.location.reload();
+    } finally {
+      setAssigning(false);
     }
-
-    setAssigning(false);
   };
   return (
     <div className="flex justify-end gap-4">

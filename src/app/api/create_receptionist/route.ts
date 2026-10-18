@@ -1,39 +1,56 @@
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import ReceptionistAccountEmail from "@/emails/ReceptionistAccountEmail";
+import { requireRole } from "@/lib/api/auth";
+import { apiError, parseBody, route } from "@/lib/api/http";
+import { sendMail, siteUrl } from "@/lib/api/mail";
+import { generateTempPassword } from "@/lib/api/password";
+import { createStaffAccount, removeStaffAccount } from "@/lib/api/staff";
 
-export async function POST(req: Request) {
-  const body = await req.json();
+const schema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email()),
+  nom: z.string().trim().min(1).max(100),
+  prenom: z.string().trim().min(1).max(100),
+});
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+export const POST = route(async (req) => {
+  const auth = await requireRole("admin");
+  if (!auth.ok) return auth.response;
 
-  // Create Auth user
-  const { data: authUser, error: authError } =
-    await supabase.auth.admin.createUser({
-      email: body.email,
-      password: "RECEP-1014",
-      email_confirm: true,
-      user_metadata: {
-        must_change_password: true,
-      },
-    });
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
+  const { email, nom, prenom } = body.data;
 
-  if (authError) {
-    return Response.json({ error: authError.message }, { status: 400 });
-  }
+  const password = generateTempPassword();
 
-  // Insert receptionist
-  const { error: receptionistError } = await supabase.from("receptionists").insert({
-    email: body.email,
-    nom: body.nom,
-    prenom: body.prenom,
-    auth_user_id: authUser.user.id,
+  const created = await createStaffAccount({
+    table: "receptionists",
+    email,
+    password,
+    row: { nom, prenom },
+  });
+  if (!created.ok) return apiError(created.error, created.status);
+
+  // The temporary password only ever exists in this request and in the email.
+  const sent = await sendMail({
+    to: email,
+    subject: "Votre compte réceptionniste ProSanté",
+    react: ReceptionistAccountEmail({
+      ReceptionistName: nom,
+      ReceptionistEmail: email,
+      password,
+      loginLink: `${siteUrl()}/auth/login`,
+    }),
   });
 
-  if (receptionistError) {
-    return Response.json({ error: receptionistError.message }, { status: 400 });
+  if (!sent) {
+    // Nobody knows the password, so keep the system consistent: undo and retry.
+    await removeStaffAccount("receptionists", created.userId);
+    return apiError(
+      "Le compte a été annulé car l'email d'invitation n'a pas pu être envoyé. Réessayez.",
+      502,
+    );
   }
 
-  return Response.json({ success: true });
-}
+  return NextResponse.json({ success: true }, { status: 201 });
+});

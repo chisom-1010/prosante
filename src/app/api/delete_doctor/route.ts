@@ -1,26 +1,59 @@
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { requireRole } from "@/lib/api/auth";
+import { apiError, parseBody, route } from "@/lib/api/http";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function DELETE(req: Request) {
-  const body = await req.json();
+const schema = z.object({
+  email: z.string().trim().pipe(z.email()),
+});
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+export const DELETE = route(async (req) => {
+  const auth = await requireRole("admin");
+  if (!auth.ok) return auth.response;
 
-  // Delete Auth user
-  const { error: authError } = await supabase.auth.admin.deleteUser(body.email);
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
 
-  if (authError) {
-    return Response.json({ error: authError.message }, { status: 400 });
+  const admin = createAdminClient();
+
+  const { data: doctor, error: lookupError } = await admin
+    .from("doctors")
+    .select("id, auth_user_id")
+    .eq("email", body.data.email)
+    .maybeSingle();
+
+  if (lookupError) throw lookupError;
+  if (!doctor) return apiError("Médecin introuvable.", 404);
+
+  // Row first: if appointments still reference this doctor the delete is
+  // refused and the login account is left untouched.
+  const { error: rowError } = await admin
+    .from("doctors")
+    .delete()
+    .eq("id", doctor.id);
+
+  if (rowError) {
+    console.error("[delete_doctor] row delete failed:", rowError);
+    return apiError(
+      "Impossible de supprimer ce médecin (des rendez-vous lui sont peut-être associés).",
+      409,
+    );
   }
 
-  // Delete doctor
-  const { error: doctorError } = await supabase.from("doctors").delete().eq("email", body.email);
-
-  if (doctorError) {
-    return Response.json({ error: doctorError.message }, { status: 400 });
+  // deleteUser takes the auth user's id, not an email.
+  if (doctor.auth_user_id) {
+    const { error: authError } = await admin.auth.admin.deleteUser(
+      doctor.auth_user_id,
+    );
+    if (authError) {
+      console.error("[delete_doctor] auth delete failed:", authError);
+      return apiError(
+        "Le médecin a été supprimé, mais son compte de connexion n'a pas pu l'être.",
+        500,
+      );
+    }
   }
 
-  return Response.json({ success: true });
-}
+  return NextResponse.json({ success: true });
+});
