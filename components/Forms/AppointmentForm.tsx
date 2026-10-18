@@ -370,7 +370,7 @@ export default function AppointmentForm() {
                     <ToggleGroupItem
                       key={slot}
                       value={slot}
-                      className="h-12 rounded-full border border-[#d9dee7] px-6 text-sm font-semibold text-[#1f2f46] data-[state=on]:border-[#0b7a75] data-[state=on]:bg-[#0b7a75] data-[state=on]:text-white"
+                      className="h-12 rounded-4xl border border-[#d9dee7] px-6 text-sm font-semibold text-[#1f2f46] data-[state=on]:border-[#0b7a75] data-[state=on]:bg-[#0b7a75] data-[state=on]:text-white"
                       variant="default"
                     >
                       {slot}
