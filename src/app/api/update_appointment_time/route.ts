@@ -1,25 +1,33 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import { requireRole } from "@/lib/api/auth";
+import { apiError, parseBody, route } from "@/lib/api/http";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function POST(req: Request) {
-  try {
-    const { appointmentId, tranche_horaires } = await req.json();
+const schema = z.object({
+  appointmentId: z.union([z.string().min(1), z.number()]),
+  tranche_horaires: z.string().trim().min(1).max(50),
+});
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+export const POST = route(async (req) => {
+  const auth = await requireRole("receptionist", "admin");
+  if (!auth.ok) return auth.response;
 
-    const { error } = await supabase
-      .from("demande_de_consultation")
-      .update({ tranche_horaires })
-      .eq("id", appointmentId);
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
+  const { appointmentId, tranche_horaires } = body.data;
 
-    if (error) throw error;
+  const admin = createAdminClient();
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
+  const { data, error } = await admin
+    .from("demande_de_consultation")
+    .update({ tranche_horaires })
+    .eq("id", appointmentId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return apiError("Rendez-vous introuvable.", 404);
+
+  return NextResponse.json({ success: true });
+});

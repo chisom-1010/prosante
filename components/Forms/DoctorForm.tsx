@@ -194,18 +194,6 @@ export function DoctorForm({
               className="h-12 cursor-pointer text-base hover:bg-emerald-800 sm:h-14 sm:text-lg lg:text-lg"
               type="submit"
               disabled={isLoading}
-              onClick={async () => {
-                await fetch(`/api/emails/doctors`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    email: email,
-                    nom: name,
-                  }),
-                });
-              }}
             >
               {isLoading ? "Ajout en cours..." : "Ajouter le médecin"}
             </Button>

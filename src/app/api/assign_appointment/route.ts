@@ -1,113 +1,99 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
-import { createClient } from "@supabase/supabase-js";
-import { PatientAppointmentEmail } from "@/emails/PatientAppointmentEmail";
+import { z } from "zod";
 import { DoctorAppointmentEmail } from "@/emails/DoctorAppointmentEmail";
+import { PatientAppointmentEmail } from "@/emails/PatientAppointmentEmail";
+import { requireRole } from "@/lib/api/auth";
+import { apiError, parseBody, route } from "@/lib/api/http";
+import { sendMail } from "@/lib/api/mail";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const schema = z.object({
+  appointmentId: z.union([z.string().min(1), z.number()]),
+  doctorId: z.union([z.string().min(1), z.number()]),
+});
 
-type AppointmentWithPatient = {
-  id: string;
-  date_de_rendezvous: string;
-  tranche_horaires: string;
-  patient: {
-    nom: string;
-    prenom: string;
-    email: string;
-  };
-};
+export const POST = route(async (req) => {
+  const auth = await requireRole("receptionist", "admin");
+  if (!auth.ok) return auth.response;
 
-export async function POST(req: Request) {
-  try {
-    const { appointmentId, doctorId } = await req.json();
+  const body = await parseBody(req, schema);
+  if (!body.ok) return body.response;
+  const { appointmentId, doctorId } = body.data;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+  const admin = createAdminClient();
 
-    // ✅ Fetch appointment + patient
-    const { data } = await supabase
-      .from("demande_de_consultation")
-      .select(
-        `
-        id,
-        date_de_rendezvous,
-        tranche_horaires,
-        patient:profiles!demande_de_consultation_id_patient_fkey (
-          nom,
-          prenom,
-          email
-        )
-      `,
+  const { data: appointment, error: appointmentError } = await admin
+    .from("demande_de_consultation")
+    .select(
+      `
+      id,
+      date_de_rendezvous,
+      tranche_horaires,
+      patient:profiles!demande_de_consultation_id_patient_fkey (
+        nom,
+        prenom,
+        email
       )
-      .eq("id", appointmentId)
-      .single();
+    `,
+    )
+    .eq("id", appointmentId)
+    .maybeSingle();
 
-    const rawPatient = data?.patient;
+  if (appointmentError) throw appointmentError;
+  if (!appointment) return apiError("Rendez-vous introuvable.", 404);
 
-    const patient = Array.isArray(rawPatient) ? rawPatient[0] : rawPatient;
+  // PostgREST types a to-one embed as an array or an object depending on the
+  // generated types, so accept both.
+  const patient = Array.isArray(appointment.patient)
+    ? appointment.patient[0]
+    : appointment.patient;
+  if (!patient) return apiError("Patient introuvable pour ce rendez-vous.", 400);
 
-    if (!data || !patient) {
-      return NextResponse.json(
-        { error: "Missing patient data" },
-        { status: 400 },
-      );
-    }
+  const { data: doctor, error: doctorError } = await admin
+    .from("doctors")
+    .select("id, nom, prenom, email")
+    .eq("id", doctorId)
+    .maybeSingle();
 
-    const appointment: AppointmentWithPatient = {
-      id: data.id,
-      date_de_rendezvous: data.date_de_rendezvous,
-      tranche_horaires: data.tranche_horaires,
-      patient: {
-        nom: patient.nom,
-        prenom: patient.prenom,
-        email: patient.email,
-      },
-    };
-    // ✅ Fetch doctor
-    const { data: doctor } = await supabase
-      .from("doctors")
-      .select("id, nom, prenom, email")
-      .eq("id", doctorId)
-      .single();
+  if (doctorError) throw doctorError;
+  if (!doctor) return apiError("Médecin introuvable.", 404);
 
-    if (!appointment || !doctor) {
-      return NextResponse.json({ error: "Missing data" }, { status: 400 });
-    }
+  // The assignment itself is done here, on the server, so the browser can no
+  // longer decide on its own which doctor an appointment goes to.
+  const { error: updateError } = await admin
+    .from("demande_de_consultation")
+    .update({ status: "accepté", doctor_id: doctor.id })
+    .eq("id", appointment.id);
 
-    // =========================
-    // 📩 EMAIL TO PATIENT
-    // =========================
-    await resend.emails.send({
-      from: "Prosanté <contact@prosantes.site>",
-      to: appointment.patient.email,
+  if (updateError) throw updateError;
+
+  // The assignment is saved; a failed email shouldn't undo it. Report it so
+  // the UI can warn the receptionist.
+  const [patientMailed, doctorMailed] = await Promise.all([
+    sendMail({
+      to: patient.email,
       subject: "Votre rendez-vous est confirmé",
       react: PatientAppointmentEmail({
-        patientName: appointment.patient.prenom,
+        patientName: patient.prenom,
         doctorName: `${doctor.prenom} ${doctor.nom}`,
         date: appointment.date_de_rendezvous,
         time: appointment.tranche_horaires,
       }),
-    });
-    // =========================
-    // 📩 EMAIL TO DOCTOR
-    // =========================
-    await resend.emails.send({
-      from: "Prosanté <contact@prosantes.site>",
+    }),
+    sendMail({
       to: doctor.email,
       subject: "Nouveau patient assigné",
       react: DoctorAppointmentEmail({
         doctorName: doctor.nom,
-        patientName: appointment.patient.prenom,
+        patientName: patient.prenom,
         date: appointment.date_de_rendezvous,
         time: appointment.tranche_horaires,
       }),
-    });
+    }),
+  ]);
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
+  return NextResponse.json({
+    success: true,
+    emailsSent: patientMailed && doctorMailed,
+  });
+});
