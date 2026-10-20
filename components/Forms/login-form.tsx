@@ -65,7 +65,15 @@ export function LoginForm({
       if (error) throw error;
 
       const userId = data.user.id;
-      console.log("USER ID:", userId);
+
+      // Staff start with a temporary password and must replace it first.
+      if (
+        data.user.app_metadata?.must_change_password === true ||
+        data.user.user_metadata?.must_change_password === true
+      ) {
+        router.push("/auth/change-password");
+        return;
+      }
 
       // PROFILE
       const { data: profile } = await supabase
@@ -73,8 +81,6 @@ export function LoginForm({
         .select("role")
         .eq("auth_user_id", userId)
         .maybeSingle();
-
-      console.log("PROFILE:", profile);
 
       if (profile) {
         const role = profile.role?.toLowerCase();
@@ -97,8 +103,6 @@ export function LoginForm({
         .eq("auth_user_id", userId)
         .maybeSingle();
 
-      console.log("DOCTOR:", doctor);
-
       if (doctor) {
         router.push("/doctors");
         return;
@@ -111,14 +115,11 @@ export function LoginForm({
         .eq("auth_user_id", userId)
         .maybeSingle();
 
-      console.log("RECEPTIONIST:", receptionist);
-
       if (receptionist) {
         router.push("/receptionists");
         return;
       }
 
-      console.log("FALLBACK TRIGGERED");
       router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -205,7 +206,7 @@ export function LoginForm({
                   </FieldLabel>
 
                   <Link
-                    href="#"
+                    href="/auth/forgot-password"
                     className="text-sm font-medium text-[#0c6b67] hover:underline"
                   >
                     Mot de passe oublié ?
@@ -261,7 +262,7 @@ export function LoginForm({
               <div className="pt-2 text-center text-base text-gray-600">
                 Nouveau patient ?{" "}
                 <Link
-                  href="#"
+                  href="/auth/signin"
                   className="font-semibold text-[#0c6b67] hover:underline"
                 >
                   Créer un compte

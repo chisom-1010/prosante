@@ -1,66 +1,94 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { supabaseEnv } from "./env";
 
+/** Pages anyone can open without signing in. Everything else needs a session. */
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/signin",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
+
+const CHANGE_PASSWORD_PATH = "/auth/change-password";
+
+function isPublic(pathname: string) {
+  return (
+    pathname === "/" ||
+    PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  );
+}
+
+/**
+ * Runs on every page request (see src/proxy.ts):
+ *  1. refreshes the Supabase session cookies,
+ *  2. sends visitors without a session to the login page,
+ *  3. keeps staff on the change-password page until they've replaced their
+ *     temporary password.
+ *
+ * Which *role* may open which area is checked by the layouts (requireDoctor,
+ * requireAdmin, ...) and, for the data itself, by Row Level Security.
+ */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let supabaseResponse = NextResponse.next({ request });
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
+  const { url, key } = supabaseEnv();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  )
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options),
+        );
+      },
+    },
+  });
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  // Do not run code between createServerClient and getClaims(): it can cause
+  // users to be logged out at random.
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims as
+    | {
+        app_metadata?: Record<string, unknown>;
+        user_metadata?: Record<string, unknown>;
+      }
+    | undefined;
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
+  const { pathname } = request.nextUrl;
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+  const redirectTo = (path: string) => {
+    const target = request.nextUrl.clone();
+    target.pathname = path;
+    target.search = "";
+    const response = NextResponse.redirect(target);
+    // Keep any refreshed session cookies on the redirect as well.
+    supabaseResponse.cookies
+      .getAll()
+      .forEach((cookie) => response.cookies.set(cookie));
+    return response;
+  };
+
+  if (!claims) {
+    return isPublic(pathname) ? supabaseResponse : redirectTo("/auth/login");
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  const mustChangePassword =
+    claims.app_metadata?.must_change_password === true ||
+    claims.user_metadata?.must_change_password === true;
 
-  return supabaseResponse
+  if (
+    mustChangePassword &&
+    !isPublic(pathname) &&
+    !pathname.startsWith(CHANGE_PASSWORD_PATH)
+  ) {
+    return redirectTo(CHANGE_PASSWORD_PATH);
+  }
+
+  return supabaseResponse;
 }

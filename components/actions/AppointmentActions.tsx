@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { STATUS_LABELS, statusOptions, type Status } from "@/lib/appointments";
 
 import { z } from "zod";
 
@@ -38,7 +39,11 @@ const updateStatus = async (id: string, status: string) => {
     .eq("id", id);
 
   if (error) {
-    console.error(error);
+    toast.error(
+      error.code === "23514"
+        ? error.message
+        : "Impossible de modifier le statut.",
+    );
   } else {
     // optional: refresh data
     window.location.reload();
@@ -158,11 +163,15 @@ export default function AppointmentActions({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="accepté">Accepté</SelectItem>
-          <SelectItem value="reporté">Reporté</SelectItem>
-          <SelectItem value="annulé">Annulé</SelectItem>
-          <SelectItem value="en cours">En cours</SelectItem>
-          <SelectItem value="terminé">Terminé</SelectItem>
+          {statusOptions(appointment.status, [
+            "accepté",
+            "reporté",
+            "annulé",
+          ]).map((s: Status) => (
+            <SelectItem key={s} value={s}>
+              {STATUS_LABELS[s]}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

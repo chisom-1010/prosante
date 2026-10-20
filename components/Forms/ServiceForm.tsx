@@ -65,7 +65,7 @@ export function ServiceForm({
 
       // Clear input and redirect on success
       setService("");
-      router.push("/quick_create");
+      router.push("/admin/quick_create");
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "An error occurred",

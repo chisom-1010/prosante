@@ -19,5 +19,11 @@ export const updateAppointmentTime = async (
     return;
   }
 
+  const data = await res.json().catch(() => null);
+  if (data?.emailsSent === false) {
+    toast.warning("Horaire modifié, mais les e-mails n'ont pas pu être envoyés.");
+    await new Promise((r) => setTimeout(r, 2500)); // let the toast be read before reload
+  }
+
   window.location.reload(); // later replace with state update
 };
