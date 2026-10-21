@@ -11,8 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft01Icon,
-  CommandIcon,
+  UserAccountIcon,
   ViewIcon,
   ViewOffIcon,
 } from "@hugeicons/core-free-icons";
@@ -130,148 +129,94 @@ export function LoginForm({
 
   return (
     <div
-      className={cn(
-        // "  px-0 py-0 md:px-8",
-        className
-      )}
+      className={cn("rounded-3xl border border-slate-200 bg-white p-8 shadow-sm", className)}
       {...props}
     >
-      <div className="absolute left-6 top-6 bg-[#f5f7fc]">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          className="h-11 rounded-xl cursor-pointer border-[#48628c] px-5 text-[#48628c] hover:bg-[#eef2fb] xs:display-none"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} className="mr-2 size-4" />
-          Retour
-        </Button>
-      </div>
+      <form onSubmit={handleLogin} noValidate>
+        <FieldGroup className="space-y-6">
+          <div>
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-emerald-50">
+              <HugeiconsIcon icon={UserAccountIcon} strokeWidth={2} className="size-7 text-emerald-700" />
+            </div>
+            <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900">Connexion</h1>
+            <FieldDescription className="mt-2 text-base text-slate-500">
+              Accédez à votre espace ProSanté sécurisé.
+            </FieldDescription>
+          </div>
 
-      {/* Center Card */}
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-[480px] rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-sm md:px-12">
-          <form onSubmit={handleLogin}>
-            <FieldGroup className="space-y-6">
-              {/* Header */}
-              <div className="space-y-3 text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-[#f5f7fc]">
-                  <HugeiconsIcon
-                    icon={CommandIcon}
-                    strokeWidth={2}
-                    className="size-7 text-[#48628c]"
-                  />
-                </div>
+          <Field className="space-y-2">
+            <FieldLabel htmlFor="email" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Adresse e-mail
+            </FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="nom@exemple.fr"
+              value={fields.email}
+              onChange={(e) => {
+                setFields({ ...fields, email: e.target.value });
+              }}
+              className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base"
+            />
+          </Field>
 
-                <div>
-                  <h1 className="text-3xl font-bold text-[#48628c]">
-                    Connexion à ProSanté
-                  </h1>
+          <Field className="space-y-2">
+            <div className="flex items-center justify-between">
+              <FieldLabel htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                Mot de passe
+              </FieldLabel>
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm font-medium text-emerald-700 hover:underline"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
 
-                  <FieldDescription className="mt-2 text-base text-gray-500">
-                    Accédez à votre espace patient sécurisé.
-                  </FieldDescription>
-                </div>
-              </div>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={fields.password}
+                onChange={(e) => {
+                  setFields({ ...fields, password: e.target.value });
+                }}
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base pr-12"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-emerald-700"
+              >
+                <HugeiconsIcon icon={showPassword ? ViewIcon : ViewOffIcon} className="size-5" />
+              </button>
+            </div>
+          </Field>
 
-              {/* Email */}
-              <Field className="space-y-2">
-                <FieldLabel
-                  htmlFor="email"
-                  className="text-sm font-semibold text-gray-800"
-                >
-                  Adresse e-mail
-                </FieldLabel>
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
 
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="nom@exemple.fr"
-                  value={fields.email}
-                  onChange={(e) => {
-                    setFields({ ...fields, email: e.target.value });
-                  }}
-                  className="h-14 rounded-md border border-gray-300 bg-[#f9fafc] px-4 text-base focus-visible:ring-2 focus-visible:ring-[#48628c]"
-                />
-              </Field>
+          <Field>
+            <Button type="submit" disabled={isLoading} className="h-12 w-full cursor-pointer rounded-2xl bg-emerald-700 text-base font-semibold text-white hover:bg-emerald-800">
+              {isLoading ? "Connexion..." : "Se connecter"}
+            </Button>
+          </Field>
 
-              {/* Password */}
-              <Field className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <FieldLabel
-                    htmlFor="password"
-                    className="text-sm font-semibold text-gray-800"
-                  >
-                    Mot de passe
-                  </FieldLabel>
-
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-sm font-medium text-[#0c6b67] hover:underline"
-                  >
-                    Mot de passe oublié ?
-                  </Link>
-                </div>
-
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={fields.password}
-                    onChange={(e) => {
-                      setFields({
-                        ...fields,
-                        password: e.target.value,
-                      });
-                    }}
-                    className="h-14 rounded-md border border-gray-300 bg-[#f9fafc] px-4 pr-12 text-base focus-visible:ring-2 focus-visible:ring-[#48628c]"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
-                  >
-                    {showPassword ? (
-                      <HugeiconsIcon icon={ViewIcon} className="size-5" />
-                    ) : (
-                      <HugeiconsIcon icon={ViewOffIcon} className="size-5" />
-                    )}
-                  </button>
-                </div>
-              </Field>
-
-              {/* Error */}
-              {error && (
-                <p className="text-sm text-red-500">{error}</p>
-              )}
-
-              {/* Submit */}
-              <Field>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="h-14 w-full rounded-md bg-[#0c6b67] text-base font-semibold text-white hover:bg-[#095954]"
-                >
-                  {isLoading ? "Connexion..." : "Se Connecter"}
-                </Button>
-              </Field>
-
-              {/* Register */}
-              <div className="pt-2 text-center text-base text-gray-600">
-                Nouveau patient ?{" "}
-                <Link
-                  href="/auth/signin"
-                  className="font-semibold text-[#0c6b67] hover:underline"
-                >
-                  Créer un compte
-                </Link>
-              </div>
-            </FieldGroup>
-          </form>
-        </div>
-      </div>
+          <div className="border-t border-slate-200 pt-5 text-center text-base text-slate-600">
+            Nouveau patient ?{" "}
+            <Link href="/auth/signin" className="font-semibold text-emerald-700 hover:underline">
+              Créer un compte
+            </Link>
+          </div>
+        </FieldGroup>
+      </form>
     </div>
   );
 }

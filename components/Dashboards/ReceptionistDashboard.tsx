@@ -18,7 +18,8 @@ import {
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/shell/StatCard";
+import { StatusBadge } from "@/components/shell/StatusBadge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -59,6 +60,7 @@ import {
   Time04Icon,
   UserAccountIcon,
 } from "@hugeicons/core-free-icons";
+import { TIME_SLOTS } from "@/lib/appointments";
 import AppointmentActions from "../actions/AppointmentActions";
 import { updateAppointmentTime } from "../actions/UpdateAppointmentTime";
 
@@ -85,28 +87,6 @@ const statsSchema = z.object({
 type Appointment = z.infer<typeof appointmentSchema>;
 type ReceptionistStats = z.infer<typeof statsSchema>;
 
-const getStatusBadge = (status: string) => {
-  const normalized = status.toLowerCase();
-
-  if (normalized.includes("accepté")) {
-    return "bg-emerald-100 text-emerald-700";
-  }
-
-  if (normalized.includes("en attente")) {
-    return "bg-blue-100 text-blue-700";
-  }
-
-  if (normalized.includes("en cours")) {
-    return "bg-cyan-100 text-cyan-700";
-  }
-
-  if (normalized.includes("annulé")) {
-    return "bg-red-100 text-red-700";
-  }
-
-  return "bg-slate-100 text-slate-700";
-};
-
 const columns: ColumnDef<Appointment>[] = [
   {
     accessorKey: "patient_name",
@@ -120,12 +100,12 @@ const columns: ColumnDef<Appointment>[] = [
 
       return (
         <div className="flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-[#dce7ff] font-semibold text-[#3f5d94]">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 font-semibold text-emerald-700">
             {initials}
           </div>
 
           <div>
-            <p className="font-medium text-[#14233c]">
+            <p className="font-medium text-slate-900">
               {row.original.patient_name}
             </p>
 
@@ -142,7 +122,7 @@ const columns: ColumnDef<Appointment>[] = [
     accessorKey: "appointment_date",
     header: "DATE",
     cell: ({ row }) => (
-      <div className="font-medium text-[#1f2f46]">
+      <div className="font-medium text-slate-900">
         {row.original.date_de_rendezvous}
       </div>
     ),
@@ -158,38 +138,16 @@ const columns: ColumnDef<Appointment>[] = [
             updateAppointmentTime(row.original.id as string, value)
           }
         >
-          <SelectTrigger className="w-[160px] border-[#d4dbe8] bg-white">
+          <SelectTrigger className="w-[160px] border-slate-200 bg-white">
             <SelectValue />
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="08h00 - 09h00">
-              08h00 - 09h00
-            </SelectItem>
-
-            <SelectItem value="09h00 - 10h00">
-              09h00 - 10h00
-            </SelectItem>
-
-            <SelectItem value="10h00 - 11h00">
-              10h00 - 11h00
-            </SelectItem>
-
-            <SelectItem value="11h00 - 12h00">
-              11h00 - 12h00
-            </SelectItem>
-
-            <SelectItem value="14h00 - 15h00">
-              14h00 - 15h00
-            </SelectItem>
-
-            <SelectItem value="15h00 - 16h00">
-              15h00 - 16h00
-            </SelectItem>
-
-            <SelectItem value="16h00 - 17h00">
-              16h00 - 17h00
-            </SelectItem>
+            {TIME_SLOTS.map((slot) => (
+              <SelectItem key={slot} value={slot}>
+                {slot}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       );
@@ -199,20 +157,14 @@ const columns: ColumnDef<Appointment>[] = [
     accessorKey: "status",
     header: "STATUT",
     cell: ({ row }) => (
-      <div
-        className={`inline-flex rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusBadge(
-          row.original.status
-        )}`}
-      >
-        {row.original.status}
-      </div>
+      <StatusBadge status={row.original.status} />
     ),
   },
   {
     accessorKey: "service",
     header: "SERVICE MÉDICAL",
     cell: ({ row }) => (
-      <div className="font-medium text-[#1f2f46]">
+      <div className="font-medium text-slate-900">
         {row.original.service}
       </div>
     ),
@@ -226,7 +178,7 @@ const columns: ColumnDef<Appointment>[] = [
       const doctor = row.original.doctor_name;
 
       return doctor ? (
-        <div className="inline-flex items-center rounded-full bg-[#d9f3ef] px-4 py-1 text-sm font-medium text-[#0c6b67]">
+        <div className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-1 text-sm font-medium text-emerald-700">
           Dr. {doctor}
         </div>
       ) : (
@@ -249,43 +201,43 @@ const statsCards = [
     label: "Rendez-vous Acceptés",
     key: "accepted",
     icon: CheckmarkCircle02Icon,
-    color: "text-[#0c7a75]",
-    bg: "bg-[#dff4f0]",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
   },
   {
     label: "Rendez-vous en Attente",
     key: "pending",
     icon: Time04Icon,
-    color: "text-[#4f6ea7]",
-    bg: "bg-[#e4ecff]",
+    color: "text-indigo-700",
+    bg: "bg-indigo-50",
   },
   {
     label: "Rendez-vous Reportés",
     key: "postponed",
     icon: Login03Icon,
-    color: "text-[#6d7280]",
-    bg: "bg-[#eef1f5]",
+    color: "text-slate-700",
+    bg: "bg-slate-100",
   },
   {
     label: "Rendez-vous en Cours",
     key: "in_progress",
     icon: UserAccountIcon,
-    color: "text-[#0c7a75]",
-    bg: "bg-[#dff4f0]",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
   },
   {
     label: "Rendez-vous Annulés",
     key: "cancelled",
     icon: Cancel01Icon,
-    color: "text-[#cf2f2f]",
-    bg: "bg-[#fde8e8]",
+    color: "text-red-700",
+    bg: "bg-red-50",
   },
   {
     label: "Rendez-vous Terminés",
     key: "done",
     icon: TaskDone01Icon,
-    color: "text-[#1f2f46]",
-    bg: "bg-[#eceff5]",
+    color: "text-cyan-700",
+    bg: "bg-cyan-50",
   },
 ];
 
@@ -385,64 +337,37 @@ export default function ReceptionistDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f7fc]">
-      <main className="mx-auto max-w-[1500px] px-6 py-10 md:px-10">
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 
         {/* Stats */}
-        <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-6">
-          {statsCards.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Card
-                key={item.key}
-                className="border-[#d6dde8] bg-white shadow-none"
-              >
-                <CardContent className="space-y-5 p-6">
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`flex size-10 items-center justify-center rounded-lg ${item.bg}`}
-                    >
-                      <HugeiconsIcon
-                        icon={Icon}
-                        className={`size-5 ${item.color}`}
-                      />
-                    </div>
-
-                    <div
-                      className={`rounded-md px-3 py-1 text-lg font-semibold ${item.bg} ${item.color}`}
-                    >
-                      {
-                        stats[
-                          item.key as keyof ReceptionistStats
-                        ] as React.ReactNode
-                      }
-                    </div>
-                  </div>
-
-                  <p className="text-lg font-semibold leading-snug text-[#384252]">
-                    {item.label}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {statsCards.map((item) => (
+            <StatCard
+              key={item.key}
+              title={item.label}
+              value={stats[item.key as keyof ReceptionistStats]}
+              icon={item.icon}
+              iconBg={item.bg}
+              iconColor={item.color}
+            />
+          ))}
         </div>
 
         {/* Table Card */}
-        <div className="overflow-hidden rounded-2xl border border-[#d6dde8] bg-white">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           {/* Top */}
-          <div className="flex flex-col justify-between gap-5 border-b border-[#d6dde8] px-8 py-8 lg:flex-row lg:items-center">
-            <h2 className="text-4xl font-bold uppercase tracking-wide text-[#48628c]">
+          <div className="flex flex-col justify-between gap-5 border-b border-slate-200 px-6 py-6 md:px-8 lg:flex-row lg:items-center">
+            <h2 className="text-2xl font-bold uppercase tracking-wide text-slate-900">
               Gestion des Rendez-vous
             </h2>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
               <div className="relative">
                 <HugeiconsIcon
                     icon={Search01Icon}
-                    className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#6b7280]"
+                    className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500"
                   />
 
                 <Input
@@ -457,7 +382,7 @@ export default function ReceptionistDashboard() {
                       .getColumn("patient_name")
                       ?.setFilterValue(event.target.value)
                   }
-                  className="h-14 w-[360px] rounded-xl border-[#d6dde8] bg-white pl-12 text-base"
+                  className="h-12 w-full sm:w-[320px] rounded-xl border-slate-200 bg-white pl-12 text-base"
                 />
               </div>
 
@@ -466,7 +391,7 @@ export default function ReceptionistDashboard() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="h-14 rounded-xl border-[#d6dde8]"
+                    className="h-12 rounded-xl border-slate-200"
                   >
                     <HugeiconsIcon
                       icon={LeftToRightListBulletIcon}
@@ -500,17 +425,18 @@ export default function ReceptionistDashboard() {
           </div>
 
           {/* Table */}
+          <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-[#eef3ff]">
+            <TableHeader className="bg-slate-50">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="border-[#d6dde8]"
+                  className="border-slate-200"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-16 text-sm font-bold uppercase tracking-wide text-[#1d2d44]"
+                      className="h-14 text-xs font-semibold uppercase tracking-wide text-slate-500"
                     >
                       {header.isPlaceholder
                         ? null
@@ -538,12 +464,12 @@ export default function ReceptionistDashboard() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    className="border-[#d6dde8]"
+                    className="border-slate-200"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="py-5 text-base text-[#1f2f46]"
+                        className="py-4 text-sm text-slate-900"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -565,11 +491,12 @@ export default function ReceptionistDashboard() {
               )}
             </TableBody>
           </Table>
+          </div>
 
           {/* Pagination */}
-          <div className="flex flex-col justify-between gap-5 border-t border-[#d6dde8] bg-[#eef3ff] px-8 py-5 lg:flex-row lg:items-center">
+          <div className="flex flex-col justify-between gap-5 border-t border-slate-200 bg-slate-50 px-6 py-4 md:px-8 lg:flex-row lg:items-center">
             <div className="flex items-center gap-3">
-              <p className="text-base font-medium text-[#384252]">
+              <p className="text-base font-medium text-slate-700">
                 Lignes par page :
               </p>
 
@@ -579,7 +506,7 @@ export default function ReceptionistDashboard() {
                   table.setPageSize(Number(value));
                 }}
               >
-                <SelectTrigger className="w-20 border-[#cbd5e1] bg-white">
+                <SelectTrigger className="w-20 border-slate-200 bg-white">
                   <SelectValue />
                 </SelectTrigger>
 
@@ -597,7 +524,7 @@ export default function ReceptionistDashboard() {
                 </SelectContent>
               </Select>
 
-              <p className="ml-4 text-base text-[#384252]">
+              <p className="ml-4 text-base text-slate-700">
                 {table.getState().pagination.pageIndex + 1}-
                 {table.getPageCount()} sur {data.length}
               </p>
@@ -606,20 +533,20 @@ export default function ReceptionistDashboard() {
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
                 <HugeiconsIcon icon={ArrowLeft01Icon} />
               </Button>
 
-              <div className="flex size-10 items-center justify-center rounded-md bg-[#0c6b67] font-semibold text-white">
+              <div className="flex size-10 items-center justify-center rounded-md bg-emerald-700 font-semibold text-white">
                 {table.getState().pagination.pageIndex + 1}
               </div>
 
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
@@ -628,7 +555,7 @@ export default function ReceptionistDashboard() {
 
               <Button
                 variant="outline"
-                className="hidden size-10 border-[#cbd5e1] bg-white lg:flex"
+                className="hidden size-10 border-slate-200 bg-white lg:flex"
                 onClick={() =>
                   table.setPageIndex(
                     Math.max(table.getPageCount() - 1, 0)
@@ -641,7 +568,7 @@ export default function ReceptionistDashboard() {
 
               <Button
                 variant="outline"
-                className="hidden size-10 border-[#cbd5e1] bg-white lg:flex"
+                className="hidden size-10 border-slate-200 bg-white lg:flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
@@ -650,7 +577,7 @@ export default function ReceptionistDashboard() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

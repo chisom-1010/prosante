@@ -7,11 +7,7 @@ export const metadata = {
     "Votre tableau de bord de gestion des patients et des rendez-vous.",
 };
 
-export default async function PatientsPage() {
+export default async function StaffAppointmentsPage() {
   await requireReceptionist();
-  return (
-    <main className="min-h-screen bg-white">
-      <ReceptionistDashboard />
-    </main>
-  );
+  return <ReceptionistDashboard />;
 }

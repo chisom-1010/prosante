@@ -17,7 +17,8 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/shell/StatCard";
+import { StatusBadge } from "@/components/shell/StatusBadge";
 
 import {
   Table,
@@ -90,74 +91,48 @@ const updateStatus = async (id: string, status: string) => {
   }
 };
 
-const getStatusBadge = (status: string) => {
-  const normalized = status.toLowerCase();
-
-  if (normalized.includes("accept")) {
-    return "bg-emerald-100 text-emerald-700";
-  }
-
-  if (normalized.includes("attente")) {
-    return "bg-blue-100 text-blue-700";
-  }
-
-  if (normalized.includes("cours")) {
-    return "bg-cyan-100 text-cyan-700";
-  }
-
-  if (normalized.includes("annul")) {
-    return "bg-red-100 text-red-700";
-  }
-
-  if (normalized.includes("fini")) {
-    return "bg-slate-200 text-slate-700";
-  }
-
-  return "bg-slate-100 text-slate-700";
-};
-
 const statsCards = [
   {
     label: "Rendez-vous Acceptés",
     key: "accepted",
     icon: CheckmarkCircle02Icon,
-    color: "text-[#0c7a75]",
-    bg: "bg-[#dff4f0]",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
   },
   {
     label: "Rendez-vous en Attente",
     key: "pending",
     icon: Time04Icon,
-    color: "text-[#4f6ea7]",
-    bg: "bg-[#e4ecff]",
+    color: "text-indigo-700",
+    bg: "bg-indigo-50",
   },
   {
     label: "Rendez-vous Reportés",
     key: "postponed",
     icon: UserAccountIcon,
-    color: "text-[#6d7280]",
-    bg: "bg-[#eef1f5]",
+    color: "text-slate-700",
+    bg: "bg-slate-100",
   },
   {
     label: "Rendez-vous en Cours",
     key: "in_progress",
     icon: UserAccountIcon,
-    color: "text-[#0c7a75]",
-    bg: "bg-[#dff4f0]",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
   },
   {
     label: "Rendez-vous Annulés",
     key: "cancelled",
     icon: Cancel01Icon,
-    color: "text-[#cf2f2f]",
-    bg: "bg-[#fde8e8]",
+    color: "text-red-700",
+    bg: "bg-red-50",
   },
   {
     label: "Rendez-vous Terminés",
     key: "done",
     icon: TaskDone01Icon,
-    color: "text-[#1f2f46]",
-    bg: "bg-[#eceff5]",
+    color: "text-cyan-700",
+    bg: "bg-cyan-50",
   },
 ];
 
@@ -227,12 +202,12 @@ export default function DoctorDashboard() {
 
         return (
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-[#dce7ff] font-semibold text-[#3f5d94]">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 font-semibold text-emerald-700">
               {initials}
             </div>
 
             <div>
-              <p className="font-medium text-[#14233c]">
+              <p className="font-medium text-slate-900">
                 {row.original.patient_name}
               </p>
 
@@ -249,7 +224,7 @@ export default function DoctorDashboard() {
       accessorKey: "appointment_date",
       header: "DATE",
       cell: ({ row }) => (
-        <div className="font-medium text-[#1f2f46]">
+        <div className="font-medium text-slate-900">
           {row.original.appointment_date}
         </div>
       ),
@@ -259,7 +234,7 @@ export default function DoctorDashboard() {
       accessorKey: "tranche_horaires",
       header: "HORAIRES",
       cell: ({ row }) => (
-        <div className="font-medium text-[#1f2f46]">
+        <div className="font-medium text-slate-900">
           {row.original.tranche_horaires}
         </div>
       ),
@@ -269,13 +244,7 @@ export default function DoctorDashboard() {
       accessorKey: "status",
       header: "STATUT",
       cell: ({ row }) => (
-        <div
-          className={`inline-flex rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusBadge(
-            row.original.status
-          )}`}
-        >
-          {row.original.status}
-        </div>
+        <StatusBadge status={row.original.status} />
       ),
     },
 
@@ -293,7 +262,7 @@ export default function DoctorDashboard() {
               updateStatus(appointment.id, value)
             }
           >
-            <SelectTrigger className="w-[170px] border-[#d6dde8] bg-white">
+            <SelectTrigger className="w-[170px] border-slate-200 bg-white">
               <SelectValue />
             </SelectTrigger>
 
@@ -330,61 +299,34 @@ export default function DoctorDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f7fc]">
-      <main className="mx-auto max-w-[1500px] px-6 py-10 md:px-10">
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         {/* Stats */}
-        <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-6">
-          {statsCards.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Card
-                key={item.key}
-                className="border-[#d6dde8] bg-white shadow-none"
-              >
-                <CardContent className="space-y-5 p-6">
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`flex size-10 items-center justify-center rounded-lg ${item.bg}`}
-                    >
-                      <HugeiconsIcon
-                        icon={Icon}
-                        className={`size-5 ${item.color}`}
-                      />
-                    </div>
-
-                    <div
-                      className={`rounded-md px-3 py-1 text-lg font-semibold ${item.bg} ${item.color}`}
-                    >
-                      {
-                        stats[
-                          item.key as keyof DoctorStats
-                        ] as React.ReactNode
-                      }
-                    </div>
-                  </div>
-
-                  <p className="text-lg font-semibold leading-snug text-[#384252]">
-                    {item.label}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {statsCards.map((item) => (
+            <StatCard
+              key={item.key}
+              title={item.label}
+              value={stats[item.key as keyof DoctorStats]}
+              icon={item.icon}
+              iconBg={item.bg}
+              iconColor={item.color}
+            />
+          ))}
         </div>
 
         {/* Table Container */}
-        <div className="overflow-hidden rounded-2xl border border-[#d6dde8] bg-white">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           {/* Top */}
-          <div className="flex flex-col justify-between gap-5 border-b border-[#d6dde8] px-8 py-8 lg:flex-row lg:items-center">
-            <h2 className="text-4xl font-bold uppercase tracking-wide text-[#48628c]">
+          <div className="flex flex-col justify-between gap-5 border-b border-slate-200 px-6 py-6 md:px-8 lg:flex-row lg:items-center">
+            <h2 className="text-2xl font-bold uppercase tracking-wide text-slate-900">
               Gestion des Rendez-vous
             </h2>
 
             <div className="relative">
               <HugeiconsIcon
                 icon={Search01Icon}
-                className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#6b7280]"
+                className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500"
               />
 
               <Input
@@ -399,23 +341,24 @@ export default function DoctorDashboard() {
                     .getColumn("patient_name")
                     ?.setFilterValue(event.target.value)
                 }
-                className="h-14 w-[340px] rounded-xl border-[#d6dde8] bg-white pl-12 text-base"
+                className="h-12 w-full sm:w-[340px] rounded-xl border-slate-200 bg-white pl-12 text-base"
               />
             </div>
           </div>
 
           {/* Table */}
+          <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-[#eef3ff]">
+            <TableHeader className="bg-slate-50">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="border-[#d6dde8]"
+                  className="border-slate-200"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-16 text-sm font-bold uppercase tracking-wide text-[#1d2d44]"
+                      className="h-14 text-xs font-semibold uppercase tracking-wide text-slate-500"
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -441,12 +384,12 @@ export default function DoctorDashboard() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    className="border-[#d6dde8]"
+                    className="border-slate-200"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="py-5 text-base text-[#1f2f46]"
+                        className="py-4 text-sm text-slate-900"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -468,11 +411,12 @@ export default function DoctorDashboard() {
               )}
             </TableBody>
           </Table>
+          </div>
 
           {/* Pagination */}
-          <div className="flex flex-col justify-between gap-5 border-t border-[#d6dde8] bg-[#eef3ff] px-8 py-5 lg:flex-row lg:items-center">
+          <div className="flex flex-col justify-between gap-5 border-t border-slate-200 bg-slate-50 px-6 py-4 md:px-8 lg:flex-row lg:items-center">
             <div className="flex items-center gap-3">
-              <p className="text-base font-medium text-[#384252]">
+              <p className="text-base font-medium text-slate-700">
                 Lignes par page :
               </p>
 
@@ -482,7 +426,7 @@ export default function DoctorDashboard() {
                   table.setPageSize(Number(value))
                 }
               >
-                <SelectTrigger className="w-20 border-[#cbd5e1] bg-white">
+                <SelectTrigger className="w-20 border-slate-200 bg-white">
                   <SelectValue />
                 </SelectTrigger>
 
@@ -504,7 +448,7 @@ export default function DoctorDashboard() {
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
@@ -515,20 +459,20 @@ export default function DoctorDashboard() {
 
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
                 <HugeiconsIcon icon={ArrowLeft01Icon} />
               </Button>
 
-              <div className="flex size-10 items-center justify-center rounded-md bg-[#0c6b67] font-semibold text-white">
+              <div className="flex size-10 items-center justify-center rounded-md bg-emerald-700 font-semibold text-white">
                 {table.getState().pagination.pageIndex + 1}
               </div>
 
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
@@ -537,7 +481,7 @@ export default function DoctorDashboard() {
 
               <Button
                 variant="outline"
-                className="size-10 border-[#cbd5e1] bg-white"
+                className="size-10 border-slate-200 bg-white"
                 onClick={() =>
                   table.setPageIndex(
                     Math.max(table.getPageCount() - 1, 0)
@@ -552,7 +496,7 @@ export default function DoctorDashboard() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

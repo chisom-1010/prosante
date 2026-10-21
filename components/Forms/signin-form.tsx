@@ -7,11 +7,10 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CommandIcon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
+import { UserAdd01Icon, ViewIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -132,115 +131,115 @@ export function SigninForm({
   
   return (
     <div
-      className={cn("flex max-w-7xl flex-col gap-10 text-base", className)}
+      className={cn("rounded-3xl border border-slate-200 bg-white p-8 shadow-sm", className)}
       {...props}
     >
-      <form onSubmit={handleSignUp}>
-        <FieldGroup>
-          <div className="flex flex-col items-center justify-start gap-3 text-center">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-10 items-center justify-center rounded-md">
-                <HugeiconsIcon
-                  icon={CommandIcon}
-                  strokeWidth={2}
-                  className="size-7"
-                />
-              </div>
-              <span className="text-sm font-medium">ProSanté</span>
-            </Link>
-            <FieldDescription>
-              <span className="text-2xl md:text-3xl text-center font-bold md:text-center sm:justify-center">
-                Créez un compte pour continuer
-              </span>
+      <form onSubmit={handleSignUp} noValidate>
+        <FieldGroup className="gap-5">
+          <div>
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-emerald-50">
+              <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} className="size-7 text-emerald-700" />
+            </div>
+            <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900">Créer un compte</h1>
+            <FieldDescription className="mt-2 text-base text-slate-500">
+              Inscrivez-vous pour demander une consultation.
             </FieldDescription>
           </div>
-          <Field>
-            <FieldLabel htmlFor="name" className="text-base md:text-lg">
+
+          <div className="grid gap-5 sm:grid-cols-2">
+          <Field className="space-y-2">
+            <FieldLabel htmlFor="name" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Nom
             </FieldLabel>
             <Input
               id="name"
               type="text"
-              className="h-12 text-base md:h-14 md:text-lg"
+              autoComplete="family-name"
+              className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base"
+              placeholder="Votre nom"
               onChange={(e) => {
                 setFields({ ...fields, name: e.target.value });
               }}
-              placeholder="veuillez entrer votre nom"
             />
           </Field>
-          <Field>
-            <FieldLabel htmlFor="firstName" className="text-base md:text-lg">
-              Prenom
+          <Field className="space-y-2">
+            <FieldLabel htmlFor="firstName" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Prénom
             </FieldLabel>
             <Input
               id="firstName"
               type="text"
-              className="h-12 text-base md:h-14 md:text-lg"
-              placeholder="veuillez entrer votre prénom"
+              autoComplete="given-name"
+              className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base"
+              placeholder="Votre prénom"
               onChange={(e) => {
                 setFields({ ...fields, firstName: e.target.value });
               }}
             />
           </Field>
-          <Field>
-            <FieldLabel htmlFor="email" className="text-base md:text-lg">
-              Email
+          </div>
+          <Field className="space-y-2">
+            <FieldLabel htmlFor="email" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Adresse e-mail
             </FieldLabel>
             <Input
               id="email"
               type="email"
-              className="h-12 text-base md:h-14 md:text-lg"
-              placeholder="m@example.com"
+              autoComplete="email"
+              className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base"
+              placeholder="nom@exemple.fr"
               onChange={(e) => {
                 setFields({ ...fields, email: e.target.value });
               }}
             />
           </Field>
-          <Field>
-            <FieldLabel htmlFor="password" className="text-base md:text-lg">
-              Mot de Passe
+
+          <Field className="space-y-2">
+            <FieldLabel htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Mot de passe
             </FieldLabel>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                className="h-12 pr-12 text-base md:h-14 md:text-lg"
-                placeholder="mot de passe"
+                autoComplete="new-password"
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 text-base pr-12"
+                placeholder="Au moins 8 caractères"
                 onChange={(e) => {
                   setFields({ ...fields, password: e.target.value });
                 }}
               />
-
               <button
                 type="button"
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground md:right-4"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-emerald-700"
               >
-                {showPassword ? (
-                  <HugeiconsIcon icon={ViewIcon} />
-                ) : (
-                  <HugeiconsIcon icon={ViewOffIcon} />
-                )}
+                <HugeiconsIcon icon={showPassword ? ViewIcon : ViewOffIcon} className="size-5" />
               </button>
             </div>
           </Field>
+
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
           <Field>
-            <Button
-              className="h-12 w-full cursor-pointer text-base font-semibold hover:bg-emerald-800 md:h-14 md:text-lg"
-              type="submit"
-            >
-              S&apos;inscrire
+            <Button type="submit" disabled={isLoading} className="h-12 w-full cursor-pointer rounded-2xl bg-emerald-700 text-base font-semibold text-white hover:bg-emerald-800">
+              {isLoading ? "Création du compte..." : "S'inscrire"}
             </Button>
           </Field>
-          <FieldSeparator></FieldSeparator>
+
+          <div className="border-t border-slate-200 pt-5 text-center text-base text-slate-600">
+            Déjà un compte ?{" "}
+            <Link href="/auth/login" className="font-semibold text-emerald-700 hover:underline">
+              Se connecter
+            </Link>
+          </div>
         </FieldGroup>
       </form>
-      <FieldDescription className="px-6 text-center text-sm md:text-base">
-        <a href="#">Terme de Service</a> et <a href="#">Politique Privé</a>.
-      </FieldDescription>
     </div>
   );
 }

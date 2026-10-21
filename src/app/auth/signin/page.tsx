@@ -1,11 +1,12 @@
+import AuthShell from "@/components/auth/AuthShell";
 import { SigninForm } from "@/components/Forms/signin-form";
 
-export default function LoginPage() {
+export const metadata = { title: "Créer un compte - ProSanté" };
+
+export default function SigninPage() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-      <div className="w-full max-w-5xl sm:text-center sm:justify-center">
-        <SigninForm />
-      </div>
-    </div>
+    <AuthShell>
+      <SigninForm />
+    </AuthShell>
   );
 }

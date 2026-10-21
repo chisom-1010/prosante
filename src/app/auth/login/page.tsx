@@ -1,11 +1,12 @@
+import AuthShell from "@/components/auth/AuthShell";
 import { LoginForm } from "@/components/Forms/login-form";
+
+export const metadata = { title: "Connexion - ProSanté" };
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-      <div className="w-full max-w-5xl">
-        <LoginForm />
-      </div>
-    </div>
+    <AuthShell>
+      <LoginForm />
+    </AuthShell>
   );
 }
