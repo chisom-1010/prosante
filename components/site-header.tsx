@@ -29,7 +29,7 @@ export function SiteHeader() {
             </h1>
 
             <p className="mt-1 text-sm text-slate-500">
-              Bienvenue dans l’interface d'administration ProSanté.
+              Bienvenue dans l’interface d&apos;administration ProSanté.
             </p>
           </div>
         </div>
