@@ -26,8 +26,23 @@ export const DELETE = route(async (req) => {
   if (lookupError) throw lookupError;
   if (!doctor) return apiError("Médecin introuvable.", 404);
 
-  // Row first: if appointments still reference this doctor the delete is
-  // refused and the login account is left untouched.
+  // The live database still has ON DELETE CASCADE on appointments.doctor_id, so
+  // deleting a doctor would silently delete every appointment assigned to them.
+  // Refuse here until 20261019000200_data_integrity.sql (ON DELETE RESTRICT) is applied.
+  const { count, error: countError } = await admin
+    .from("demande_de_consultation")
+    .select("id", { count: "exact", head: true })
+    .eq("doctor_id", doctor.id);
+
+  if (countError) throw countError;
+  if ((count ?? 0) > 0) {
+    return apiError(
+      "Ce médecin a des rendez-vous associés. Réassignez-les avant de le supprimer.",
+      409,
+    );
+  }
+
+  // Row first: if the delete is refused the login account is left untouched.
   const { error: rowError } = await admin
     .from("doctors")
     .delete()
