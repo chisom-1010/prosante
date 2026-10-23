@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Alert01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+
+import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,247 +19,195 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
+import { TIME_SLOTS } from "@/lib/appointments";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert01Icon,
-  ArrowRight01Icon,
-  ArrowLeft01Icon,
-  Cancel01Icon,
-} from "@hugeicons/core-free-icons";
+type Service = { id: string; type_de_service: string };
 
-interface FormData {
-  department: string;
-  selectedSlot: string;
-  patientName: string;
-  patientLastName: string;
-  patientId: string;
-  notes: string;
-  sexe: string;
-  age: number;
-  date: Date | undefined;
-}
+/** yyyy-mm-dd in the user's own timezone (toISOString would shift the day for some offsets). */
+const toLocalISODate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-const TIME_SLOTS = [
-  "08h00 - 09h00",
-  "09h00 - 10h00",
-  "10h00 - 11h00",
-  "11h00 - 12h00",
-  "14h00 - 15h00",
-  "15h00 - 16h00",
-  "16h00 - 17h00",
-];
+const labelClass = "text-xs font-semibold uppercase tracking-wide text-slate-600";
+const fieldClass = "h-12 rounded-xl border-slate-200 bg-white text-base shadow-none";
 
 export default function AppointmentForm() {
-  const [formData, setFormData] = useState<FormData>({
-    department: "",
-    selectedSlot: "",
-    patientName: "",
-    patientLastName: "",
-    patientId: "",
-    notes: "",
-    sexe: "",
-    age: 0,
-    date: undefined,
-  });
-
-  const [date, setDate] = useState<Date | undefined>(new Date());
-
-  const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [services, setServices] = useState<
-    { id: string; type_de_service: string }[]
-  >([]);
-
   const router = useRouter();
 
-  const logout = async () => {
-    const supabase = createClient();
-
-    await supabase.auth.signOut();
-
-    router.push("/auth/login");
-  };
-
-  useEffect(() => {
-    async function fetchUsername() {
-      try {
-        const response = await fetch("/api/user/profile");
-
-        if (response.ok) {
-          const data = await response.json();
-
-          setFormData((prev) => ({
-            ...prev,
-            patientName: data.username || "",
-            patientLastName: data.firstName || "",
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to fetch username:", error);
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    }
-
-    fetchUsername();
-  }, []);
+  const [services, setServices] = useState<Service[]>([]);
+  const [fullName, setFullName] = useState("");
+  const [department, setDepartment] = useState("");
+  const [sexe, setSexe] = useState("");
+  const [age, setAge] = useState("");
+  const [date, setDate] = useState<Date | undefined>();
+  const [slot, setSlot] = useState("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchServices = async () => {
-      const supabase = createClient();
-
-      const { data } = await supabase.rpc("get_services");
-
-      if (data) setServices(data);
-    };
-
-    fetchServices();
-  }, []);
-
-  const validateForm = () => {
-    const newErrors: Partial<FormData> = {};
-
-    if (!formData.department)
-      toast.error("Veuillez sélectionner un département.", {
-        position: "top-center",
-      });
-
-    if (!formData.selectedSlot)
-      toast.error("Choisir une tranche horaire", {
-        position: "top-center",
-      });
-
-    if (!formData.date)
-      toast.error("Veuillez choisir une date", {
-        position: "top-center",
-      });
-
-    if (!formData.sexe)
-      toast.error("Veuillez sélectionner votre sexe.", {
-        position: "top-center",
-      });
-
-    if (formData.age < 0)
-      toast.error("Veuillez entrer un âge valide.", {
-        position: "top-center",
-      });
-
-    if (!formData)
-      toast.error("Veuillez remplir tous les champs.", {
-        position: "top-center",
-      });
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0 && date;
-  };
-
-  const handleNewAppointment = async (e: React.SubmitEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
     const supabase = createClient();
-
-    const { data: userData } = await supabase.auth.getUser();
-
-    const { error } = await supabase.from("demande_de_consultation").insert({
-      id_patient: userData.user?.id,
-      tranche_horaires: formData.selectedSlot,
-      date_de_rendezvous: formData.date?.toISOString(),
-      id_service_medical: formData.department,
-      status: "en attente",
-      notes: formData.notes,
-      sexe: formData.sexe,
-      age: formData.age,
+    supabase.rpc("get_services").then(({ data }) => {
+      if (data) setServices(data as Service[]);
     });
 
-    if (error) {
-      console.error(error);
-    } else {
+    fetch("/api/user/profile")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p) => {
+        if (p) setFullName(`${p.firstName ?? ""} ${p.username ?? ""}`.trim());
+      })
+      .catch(() => {});
+  }, []);
+
+  const serviceName = services.find((s) => s.id === department)?.type_de_service;
+
+  const validate = (): string | null => {
+    if (!department) return "Veuillez sélectionner un service.";
+    if (!sexe) return "Veuillez indiquer votre sexe.";
+    const n = Number(age);
+    if (!Number.isInteger(n) || n < 1 || n > 120) return "Veuillez entrer un âge valide (1 à 120).";
+    if (!date) return "Veuillez choisir une date.";
+    if (!slot) return "Veuillez choisir un créneau horaire.";
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const problem = validate();
+    if (problem) {
+      toast.error(problem);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      const { error } = await supabase.from("demande_de_consultation").insert({
+        id_patient: user.id,
+        id_service_medical: department,
+        date_de_rendezvous: toLocalISODate(date!),
+        tranche_horaires: slot,
+        status: "en attente",
+        sexe,
+        age: Number(age),
+        notes: notes.trim() || null,
+      });
+
+      if (error) {
+        toast.error(
+          error.code === "23514" ? error.message : "Impossible d'envoyer la demande. Réessayez.",
+        );
+        return;
+      }
+
+      toast.success("Demande envoyée. Notre équipe vous contactera pour la confirmer.");
       router.push("/patients/appointments");
+      router.refresh();
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f6f8] px-6 py-14">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-16">
-          <button
-            onClick={() => window.history.back()}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-5 py-2.5 transition hover:bg-emerald-100 cursor-pointer border border-slate-200 border-2px"
-          >
-            <HugeiconsIcon
-              icon={ArrowLeft01Icon}
-              strokeWidth={2}
-              className="h-4 w-4 text-emerald-700"
-              />
-
-          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">
-             Retour
-        </span>
-       </button>
-</div>
-        {/* HEADER */}
-        <div className="mb-10 text-center">
-          <h1 className="text-5xl font-black tracking-tight text-[#112031] md:text-6xl">
-            Demander une Consultation
-          </h1>
-
-          <p className="mt-4 text-xl italic text-[#7b8794]">
-            Prenez rendez-vous avec nos spécialistes en quelques clics.
+    <div className="mx-auto grid w-full max-w-6xl gap-6 py-2 lg:grid-cols-[1fr_320px]">
+      <form onSubmit={handleSubmit} noValidate className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
+        <div className="flex items-start gap-4 rounded-xl border-l-4 border-emerald-700 bg-emerald-50 px-5 py-4">
+          <HugeiconsIcon icon={Alert01Icon} className="mt-0.5 size-5 shrink-0 text-emerald-700" />
+          <p className="text-sm text-emerald-900">
+            Ce formulaire est une <strong>demande</strong> : un membre de notre équipe la confirmera et vous
+            assignera un médecin.
           </p>
         </div>
 
-        {/* ALERT */}
-        <div className="mb-8 flex items-start gap-4 rounded-xl border-l-4 border-[#0b7a75] bg-[#e8f6f4] px-6 py-5">
-          <HugeiconsIcon
-            icon={Alert01Icon}
-            className="mt-1 size-5 text-[#0b7a75]"
-          />
+        <div className="space-y-2">
+          <Label className={labelClass}>Service médical</Label>
+          <Select value={department} onValueChange={setDepartment}>
+            <SelectTrigger className={`w-full h-12! ${fieldClass}`} aria-label="Service médical">
+              <SelectValue placeholder="Sélectionner…" />
+            </SelectTrigger>
+            <SelectContent>
+              {services.map((s) => (
+                <SelectItem key={s.id} value={s.id} className="text-base">
+                  {s.type_de_service}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div>
-            <p className="text-sm font-black uppercase tracking-wider text-[#0b4d4a]">
-              Avis de Santé
-            </p>
-
-            <p className="mt-1 text-base text-[#0c6b67]">
-              Ce formulaire est une demande uniquement. Un membre de notre
-              équipe vous contactera pour confirmer l&apos;horaire définitif.
-            </p>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label className={labelClass}>Sexe</Label>
+            <Select value={sexe} onValueChange={setSexe}>
+              <SelectTrigger className={`w-full h-12! ${fieldClass}`} aria-label="Sexe">
+                <SelectValue placeholder="Sélectionner…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="homme">Homme</SelectItem>
+                <SelectItem value="femme">Femme</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="age" className={labelClass}>
+              Âge
+            </Label>
+            <Input
+              id="age"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={120}
+              placeholder="28"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className={fieldClass}
+            />
           </div>
         </div>
 
-        {/* CARD */}
-        <Card className="overflow-hidden rounded-[28px] border-none bg-white shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
-          <CardContent className="p-8 md:p-12">
-            {/* TOP BAR */}
-            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {!isLoadingProfile && formData.patientName && (
-                <div>
-                  <p className="text-lg font-semibold text-[#112031]">
-                    Bonjour, {formData.patientName}
-                  </p>
+        <div className="space-y-3">
+          <Label className={labelClass}>Date du rendez-vous</Label>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 md:p-5">
+            <Calendar
+              mode="single"
+              locale={fr}
+              selected={date}
+              onSelect={setDate}
+              disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+              className="mx-auto w-full max-w-md bg-transparent"
+            />
+          </div>
+        </div>
 
-                  <p className="text-sm text-[#7b8794]">
-                    Services aux patients
-                  </p>
-                </div>
-              )}
-
-              <Button
+        <div className="space-y-3">
+          <Label className={labelClass}>Créneau horaire</Label>
+          <ToggleGroup
+            type="single"
+            value={slot}
+            onValueChange={(v) => v && setSlot(v)}
+            className="flex flex-wrap justify-start gap-3"
+          >
+            {TIME_SLOTS.map((s) => (
+              <ToggleGroupItem
+                key={s}
+                value={s}
                 variant="outline"
-                onClick={logout}
-                className="h-11 rounded-xl border-[#d9dee7] px-5 text-sm font-semibold text-[#112031] hover:bg-[#f5f7fb]"
+                className="h-11 rounded-full! border-slate-200 px-5 text-sm font-semibold text-slate-700 data-[state=on]:border-emerald-700 data-[state=on]:bg-emerald-700 data-[state=on]:text-white"
               >
+                {s}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
                 <HugeiconsIcon
                   icon={Cancel01Icon}
                   className="mr-2 size-4"
@@ -423,46 +378,53 @@ export default function AppointmentForm() {
                   Décrivez votre Problème
                 </Label>
 
-                <textarea
-                  placeholder="Ex: douleur, fièvre, consultation générale..."
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      notes: e.target.value,
-                    })
-                  }
-                  className="min-h-[140px] w-full rounded-2xl border border-[#d8dee8] bg-white px-5 py-4 text-base outline-none transition focus:border-[#0b7a75]"
-                />
-              </div>
+        <div className="space-y-2">
+          <Label htmlFor="notes" className={labelClass}>
+            Décrivez votre problème <span className="font-normal normal-case text-slate-400">(facultatif)</span>
+          </Label>
+          <textarea
+            id="notes"
+            maxLength={1000}
+            placeholder="Ex : douleur, fièvre, consultation générale…"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="min-h-32 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/20"
+          />
+        </div>
 
-              {/* SUBMIT */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="h-16 w-full rounded-2xl bg-[#0b7a75] text-lg font-bold text-white shadow-lg shadow-[#0b7a75]/20 transition hover:bg-[#09645f]"
-              >
-                {isLoading ? (
-                  "Envoi en cours..."
-                ) : (
-                  <>
-                    Envoyer la demande
-                    <HugeiconsIcon
-                      icon={ArrowRight01Icon}
-                      className="ml-3 size-5"
-                    />
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="h-14 w-full rounded-2xl bg-emerald-700 text-base font-semibold text-white shadow-sm hover:bg-emerald-800"
+        >
+          {submitting ? "Envoi en cours…" : "Envoyer la demande"}
+          {!submitting && <HugeiconsIcon icon={ArrowRight01Icon} className="ml-2 size-5" />}
+        </Button>
+      </form>
 
-        {/* FOOTER */}
-        <p className="mt-10 text-center text-sm text-[#98a2b3]">
-          © 2024 Clinical Prestige — Services aux patients.
-        </p>
-      </div>
+      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 lg:sticky lg:top-28">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Récapitulatif</p>
+        <dl className="mt-5 space-y-4 text-sm">
+          <Row label="Patient" value={fullName} />
+          <Row label="Service" value={serviceName} />
+          <Row
+            label="Date"
+            value={date?.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          />
+          <Row label="Créneau" value={slot} />
+        </dl>
+      </aside>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+      <dt className="text-xs uppercase tracking-wide text-slate-400">{label}</dt>
+      <dd className={`mt-1 text-base capitalize ${value ? "font-semibold text-slate-900" : "text-slate-400"}`}>
+        {value || "—"}
+      </dd>
     </div>
   );
 }

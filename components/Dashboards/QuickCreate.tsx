@@ -131,8 +131,8 @@ export default function QuickCreate() {
               </h3>
 
               <p className="mt-4 text-lg leading-9 text-slate-300">
-                Accédez à l'annuaire complet pour gérer les permissions et les
-                plannings de l'ensemble de votre équipe.
+                Accédez à l&apos;annuaire complet pour gérer les permissions et les
+                plannings de l&apos;ensemble de votre équipe.
               </p>
             </div>
 

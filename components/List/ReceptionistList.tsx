@@ -98,7 +98,7 @@ const columns: ColumnDef<ReceptionistRow>[] = [
             </p>
 
             <p className="text-xs text-muted-foreground">
-              Personnel d'accueil
+              Personnel d&apos;accueil
             </p>
           </div>
         </div>

@@ -14,13 +14,15 @@ export default function ResetPasswordForm() {
 
   if (!tokenHash) {
     return (
-      <div className="space-y-3 text-center">
-        <p className="text-base">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm" role="alert">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lien invalide</p>
+        <h1 className="mt-2 text-2xl font-bold text-slate-900">Ce lien a expiré</h1>
+        <p className="mt-3 text-base text-slate-600">
           Ce lien de réinitialisation est incomplet ou a expiré.
         </p>
         <Link
           href="/auth/forgot-password"
-          className="font-semibold text-[#0c6b67] hover:underline"
+          className="mt-6 inline-flex h-12 items-center justify-center rounded-2xl bg-emerald-700 px-6 font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
         >
           Demander un nouveau lien
         </Link>
