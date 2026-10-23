@@ -208,6 +208,7 @@ export default function AppointmentForm() {
             ))}
           </ToggleGroup>
         </div>
+        <div>
                 <HugeiconsIcon
                   icon={Cancel01Icon}
                   className="mr-2 size-4"
