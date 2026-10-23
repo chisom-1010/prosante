@@ -76,13 +76,6 @@ create trigger demande_de_consultation_set_updated_at
   before update on public.demande_de_consultation
   for each row execute function public.set_updated_at();
 
--- ---------------------------------------------------------------------------
--- OPTIONAL (business rule - decide before enabling): forbid booking the same
--- doctor twice in the same slot.
---
--- create unique index demande_de_consultation_no_double_booking
---   on public.demande_de_consultation (doctor_id, date_de_rendezvous, tranche_horaires)
---   where doctor_id is not null and status in ('accepté', 'en cours');
--- ---------------------------------------------------------------------------
+-- Double-booking prevention lives in 20261019000300_appointment_rules.sql
 
 commit;

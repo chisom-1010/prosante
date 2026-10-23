@@ -9,6 +9,8 @@ export type Caller = {
   userId: string;
   email?: string;
   roles: Role[];
+  /** True until a staff member has replaced their temporary password. */
+  mustChangePassword: boolean;
 };
 
 /**
@@ -50,7 +52,14 @@ export async function getCaller(): Promise<Caller | null> {
   if (doctor.data) roles.push("doctor");
   if (receptionist.data) roles.push("receptionist");
 
-  return { userId: user.id, email: user.email, roles };
+  // app_metadata can only be written server-side. user_metadata can be edited by
+  // the user themselves, so it is only honoured as a legacy flag: accounts made
+  // before this change were flagged there, and it can only ever add a restriction.
+  const mustChangePassword =
+    user.app_metadata?.must_change_password === true ||
+    user.user_metadata?.must_change_password === true;
+
+  return { userId: user.id, email: user.email, roles, mustChangePassword };
 }
 
 type GuardResult =
@@ -63,7 +72,8 @@ type GuardResult =
  *   const auth = await requireRole("admin");
  *   if (!auth.ok) return auth.response;
  *
- * 401 when not signed in, 403 when signed in without one of the roles.
+ * 401 when not signed in, 403 when signed in without one of the roles, and 403
+ * while a staff member still has to replace their temporary password.
  */
 export async function requireRole(...allowed: Role[]): Promise<GuardResult> {
   const caller = await getCaller();
@@ -76,5 +86,33 @@ export async function requireRole(...allowed: Role[]): Promise<GuardResult> {
     return { ok: false, response: apiError("Accès refusé.", 403) };
   }
 
+  if (caller.mustChangePassword) {
+    return {
+      ok: false,
+      response: apiError(
+        "Vous devez d'abord changer votre mot de passe temporaire.",
+        403,
+      ),
+    };
+  }
+
   return { ok: true, caller };
+}
+
+/** Any signed-in user, whatever their role or password state. */
+export async function requireSession(): Promise<GuardResult> {
+  const caller = await getCaller();
+  if (!caller) {
+    return { ok: false, response: apiError("Non authentifié.", 401) };
+  }
+  return { ok: true, caller };
+}
+
+/** Where each kind of user lands after signing in. */
+export function homePathFor(roles: Role[]): string {
+  if (roles.includes("admin")) return "/admin";
+  if (roles.includes("doctor")) return "/doctors";
+  if (roles.includes("receptionist")) return "/receptionists";
+  if (roles.includes("patient")) return "/patients";
+  return "/";
 }

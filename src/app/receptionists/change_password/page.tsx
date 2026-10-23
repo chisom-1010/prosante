@@ -1,14 +1,5 @@
-import UpdatePasswordForm from "@/components/Forms/ReceptionistChangePassword";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Tableau de Bord Receptioniste - ProSanté",
-  description: "Changez votre mot de passe pour sécuriser votre compte.",
-};
-
-export default function PatientsPage() {
-  return (
-    <main className="min-h-screen bg-white">
-      <UpdatePasswordForm />
-    </main>
-  );
+export default function ChangePasswordRedirect() {
+  redirect("/auth/change-password");
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { STATUS_LABELS, statusOptions, type Status } from "@/lib/appointments";
+import { toast } from "sonner";
 import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -77,8 +79,15 @@ const updateStatus = async (id: string, status: string) => {
     .update({ status })
     .eq("id", id);
 
-  if (error) console.error(error);
-  else window.location.reload();
+  if (error) {
+    toast.error(
+      error.code === "23514"
+        ? error.message
+        : "Impossible de modifier le statut.",
+    );
+  } else {
+    window.location.reload();
+  }
 };
 
 const getStatusBadge = (status: string) => {
@@ -289,13 +298,13 @@ export default function DoctorDashboard() {
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem value="en cours">
-                En cours
-              </SelectItem>
-
-              <SelectItem value="fini">
-                Terminé
-              </SelectItem>
+              {statusOptions(appointment.status, ["en cours", "fini"]).map(
+                (s: Status) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         );

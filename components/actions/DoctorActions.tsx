@@ -1,6 +1,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { STATUS_LABELS, statusOptions, type Status } from "@/lib/appointments";
+import { toast } from "sonner";
 import {
   Select,
   SelectTrigger,
@@ -23,7 +25,11 @@ const updateStatus = async (id: string, status: string) => {
     .eq("id", id);
 
   if (error) {
-    console.error(error);
+    toast.error(
+      error.code === "23514"
+        ? error.message
+        : "Impossible de modifier le statut.",
+    );
   } else {
     window.location.reload();
   }
@@ -46,8 +52,13 @@ export default function DoctorActions({
 
         <SelectContent>
           {/* Only allowed actions */}
-          <SelectItem value="en cours">En cours</SelectItem>
-          <SelectItem value="terminé">Terminé</SelectItem>
+          {statusOptions(appointment.status, ["en cours", "fini"]).map(
+            (s: Status) => (
+              <SelectItem key={s} value={s}>
+                {STATUS_LABELS[s]}
+              </SelectItem>
+            ),
+          )}
         </SelectContent>
       </Select>
     </div>

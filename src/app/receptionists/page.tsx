@@ -1,3 +1,4 @@
+import { requireReceptionist } from "@/lib/auth/requireReceptionist";
 import ReceptionistDashboard from "@/components/Dashboards/ReceptionistDashboard";
 
 export const metadata = {
@@ -6,7 +7,8 @@ export const metadata = {
     "Votre tableau de bord de gestion des patients et des rendez-vous.",
 };
 
-export default function PatientsPage() {
+export default async function PatientsPage() {
+  await requireReceptionist();
   return (
     <main className="min-h-screen bg-white">
       <ReceptionistDashboard />

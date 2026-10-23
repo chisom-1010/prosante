@@ -7,6 +7,7 @@ The ProSanté database used to exist only in the Supabase dashboard. These files
 | `20261019000000_baseline_schema.sql` | Exact snapshot of production as found on 2026-10-19, flaws included | **No: already applied.** Mark it as applied (below). |
 | `20261019000100_security_hardening.sql` | Closes the RLS / RPC holes from the audit | After testing on a scratch project |
 | `20261019000200_data_integrity.sql` | Constraints, safer foreign keys, indexes, `updated_at` | After testing; independent of the file above |
+| `20261019000300_appointment_rules.sql` | One patient per doctor per slot, allowed status transitions, doctor required once accepted, no past bookings | After the two above; mirrors `lib/appointments.ts` |
 
 ## What the audit found (2026-10-19)
 
@@ -54,7 +55,7 @@ Each migration runs in one transaction, so a failure leaves nothing half-applied
 ## Known follow-ups (not in these migrations)
 
 - Appointment status transitions are not enforced (a doctor can set any valid status).
-- No double-booking rule; a commented-out optional index is in the integrity file.
+- Double booking, invalid status changes and past bookings are now blocked by `20261019000300_appointment_rules.sql`.
 - No audit trail of who changed what. Worth adding for medical data.
 - Staff accounts cannot be deactivated, only deleted (and deleting a doctor with history is now refused). Add an `active` flag if clinics need to offboard doctors.
 - `/patients/appointments` is redirected to after booking but the page does not exist yet.

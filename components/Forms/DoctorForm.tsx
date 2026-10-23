@@ -47,7 +47,6 @@ export function DoctorForm({
     const getCurrentUser = async () => {
       const supabase = createClient();
       const { data } = await supabase.auth.getUser();
-      console.log(data.user);
     };
     getCurrentUser();
   }, []);

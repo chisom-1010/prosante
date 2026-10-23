@@ -5,6 +5,7 @@ import { PatientAppointmentEmail } from "@/emails/PatientAppointmentEmail";
 import { requireRole } from "@/lib/api/auth";
 import { apiError, parseBody, route } from "@/lib/api/http";
 import { sendMail } from "@/lib/api/mail";
+import { ACTIVE_STATUSES, EDITABLE_STATUSES } from "@/lib/appointments";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
@@ -29,6 +30,8 @@ export const POST = route(async (req) => {
       id,
       date_de_rendezvous,
       tranche_horaires,
+      status,
+      id_service_medical,
       patient:profiles!demande_de_consultation_id_patient_fkey (
         nom,
         prenom,
@@ -51,12 +54,30 @@ export const POST = route(async (req) => {
 
   const { data: doctor, error: doctorError } = await admin
     .from("doctors")
-    .select("id, nom, prenom, email")
+    .select("id, nom, prenom, email, service_id")
     .eq("id", doctorId)
     .maybeSingle();
 
   if (doctorError) throw doctorError;
   if (!doctor) return apiError("Médecin introuvable.", 404);
+
+  if (!(EDITABLE_STATUSES as readonly string[]).includes(appointment.status)) {
+    return apiError("Ce rendez-vous ne peut plus être assigné.", 409);
+  }
+  if (doctor.service_id !== appointment.id_service_medical) {
+    return apiError("Ce médecin n'appartient pas au service demandé.", 409);
+  }
+
+  const { count: busy, error: conflictError } = await admin
+    .from("demande_de_consultation")
+    .select("id", { count: "exact", head: true })
+    .eq("doctor_id", doctor.id)
+    .eq("date_de_rendezvous", appointment.date_de_rendezvous)
+    .eq("tranche_horaires", appointment.tranche_horaires)
+    .in("status", [...ACTIVE_STATUSES])
+    .neq("id", appointment.id);
+  if (conflictError) throw conflictError;
+  if (busy) return apiError("Ce médecin a déjà un rendez-vous sur ce créneau.", 409);
 
   // The assignment itself is done here, on the server, so the browser can no
   // longer decide on its own which doctor an appointment goes to.
@@ -65,7 +86,12 @@ export const POST = route(async (req) => {
     .update({ status: "accepté", doctor_id: doctor.id })
     .eq("id", appointment.id);
 
-  if (updateError) throw updateError;
+  if (updateError) {
+    if (updateError.code === "23505" || updateError.code === "23514") {
+      return apiError("Assignation impossible : créneau déjà pris ou statut invalide.", 409);
+    }
+    throw updateError;
+  }
 
   // The assignment is saved; a failed email shouldn't undo it. Report it so
   // the UI can warn the receptionist.

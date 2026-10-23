@@ -32,7 +32,6 @@ export function ReceptionistForm({
     const getCurrentUser = async () => {
       const supabase = createClient();
       const { data } = await supabase.auth.getUser();
-      console.log(data.user);
     };
     getCurrentUser();
   }, []);

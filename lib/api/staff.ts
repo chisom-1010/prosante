@@ -23,7 +23,9 @@ export async function createStaffAccount(args: {
     email: args.email,
     password: args.password,
     email_confirm: true,
-    user_metadata: { must_change_password: true },
+    // app_metadata is writable only with the service role. (user_metadata can be
+    // edited by the user, so a flag there could simply be cleared.)
+    app_metadata: { must_change_password: true },
   });
 
   if (authError || !data?.user) {
