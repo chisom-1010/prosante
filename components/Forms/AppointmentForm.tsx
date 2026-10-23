@@ -208,6 +208,175 @@ export default function AppointmentForm() {
             ))}
           </ToggleGroup>
         </div>
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  className="mr-2 size-4"
+                />
+                Déconnecter-vous
+              </Button>
+            </div>
+
+            {/* FORM */}
+            <form onSubmit={handleNewAppointment} className="space-y-10">
+              {/* SELECTS */}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Sélectionner le Département
+                  </Label>
+
+                  <Select
+                    value={formData.department}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        department: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-[#d8dee8] bg-white text-base shadow-none">
+                      <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem
+                          key={service.id}
+                          value={service.id}
+                          className="text-base"
+                        >
+                          {service.type_de_service}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Sexe
+                  </Label>
+
+                  <Select
+                    value={formData.sexe.toLowerCase().trim()}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        sexe: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-14 rounded-xl border-[#d8dee8] bg-white text-base shadow-none">
+                      <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="homme">Homme</SelectItem>
+
+                      <SelectItem value="femme">Femme</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* CALENDAR */}
+              <div className="space-y-4">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Date de Rendez-vous
+                </Label>
+
+                <div className="rounded-2xl border border-[#e3e8ef] bg-[#fbfcfd] p-5">
+                  <Calendar
+                    mode="single"
+                    selected={formData.date}
+                    onSelect={(selectedDate) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        date: selectedDate,
+                      }))
+                    }
+                    disabled={(d) =>
+                      d < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* TIME SLOTS */}
+              <div className="space-y-4">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Tranches Horaires
+                </Label>
+
+                <ToggleGroup
+                  type="single"
+                  value={formData.selectedSlot}
+                  onValueChange={(value) => {
+                    if (value)
+                      setFormData({
+                        ...formData,
+                        selectedSlot: value,
+                      });
+                  }}
+                  className="flex flex-wrap justify-start gap-3"
+                >
+                  {TIME_SLOTS.map((slot) => (
+                    <ToggleGroupItem
+                      key={slot}
+                      value={slot}
+                      className="h-12 rounded-4xl border border-[#d9dee7] px-6 text-sm font-semibold text-[#1f2f46] data-[state=on]:border-[#0b7a75] data-[state=on]:bg-[#0b7a75] data-[state=on]:text-white"
+                      variant="default"
+                    >
+                      {slot}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              {/* PATIENT INFOS */}
+              <div className="grid gap-6 md:grid-cols-[1fr_180px]">
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Votre Nom Complet
+                  </Label>
+
+                  <Input
+                    value={`${formData.patientName} ${formData.patientLastName}`}
+                    disabled
+                    className="h-14 rounded-xl border-[#d8dee8] bg-[#f8fafc] text-base"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                    Âge
+                  </Label>
+
+                  <Input
+                    placeholder="28"
+                    value={formData.age}
+                    type="number"
+                    min="0"
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        age:
+                          e.target.value === ""
+                            ? 0
+                            : Number(e.target.value),
+                      })
+                    }
+                    className="h-14 rounded-xl border-[#d8dee8] bg-white text-base"
+                  />
+                </div>
+              </div>
+
+              {/* NOTES */}
+              <div className="space-y-3">
+                <Label className="text-sm font-bold uppercase tracking-wider text-[#1f2f46]">
+                  Décrivez votre Problème
+                </Label>
 
         <div className="space-y-2">
           <Label htmlFor="notes" className={labelClass}>
